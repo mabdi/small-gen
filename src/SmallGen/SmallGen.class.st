@@ -3,7 +3,8 @@ Class {
 	#superclass : #Object,
 	#instVars : [
 		'config',
-		'targets'
+		'targets',
+		'sampleCode'
 	],
 	#category : #SmallGen
 }
@@ -15,6 +16,7 @@ SmallGen class >> example [
 	result := (SmallGen initializeWith: config)
 		          target: SmallBank;
 		          target: SmallBank2;
+					 sampleCode: [ SmallBank example. SmallBank2 example ];
 		          generate
 ]
 
@@ -25,6 +27,22 @@ SmallGen class >> initializeWith: aConfig [
 
 { #category : #initialization }
 SmallGen >> generate [
+	self observe.
+	self generateUsingObservations.
+"	self initState.
+	self installObservers.
+	sampleCode
+		ensure: [ self uninstallObsevers ].
+	self generate"
+]
+
+{ #category : #'as yet unclassified' }
+SmallGen >> generateUsingObservations [
+]
+
+{ #category : #'as yet unclassified' }
+SmallGen >> getObserver [
+	^ self observerClass initWith: config
 ]
 
 { #category : #initialization }
@@ -39,7 +57,22 @@ SmallGen >> initializeWith: aConfig [
 	
 ]
 
+{ #category : #initialization }
+SmallGen >> observe [
+	self getObserver 
+]
+
+{ #category : #'as yet unclassified' }
+SmallGen >> observerClass [
+	^ SGObserver 
+]
+
 { #category : #accessing }
-SmallGen >> target:aTargetClass [
-	self targets add: aTargetClass 
+SmallGen >> sampleCode: aCode [
+	sampleCode:= aCode
+]
+
+{ #category : #accessing }
+SmallGen >> target: aTargetClass [
+	 targets add: aTargetClass
 ]
