@@ -30,16 +30,26 @@ SGObserver >> getAnObservation [
 ]
 
 { #category : #'as yet unclassified' }
+SGObserver >> installMetaLinkOn: aMethodAst [
+	| link |
+	link := MetaLink new metaObject: self; selector: #linkBeforMethodCall; control: #before; argument: #(object).
+	aMethodAst link: link
+]
+
+{ #category : #'as yet unclassified' }
 SGObserver >> installObservers [
 	targets do: [ :aClass | self installObserversFor: aClass ]
 ]
 
 { #category : #'as yet unclassified' }
 SGObserver >> installObserversFor: aClass [
-	" add an instVariable "
-	aClass addInstVarNamed: 'smallGenState'
+	aClass addInstVarNamed: 'smallGenState'.
+	aClass methods do: [ :aMethod | self installMetaLinkOn: aMethod ast ]
+]
 
-	
+{ #category : #'as yet unclassified' }
+SGObserver >> linkBeforMethodCall: anObject [
+	self halt.
 ]
 
 { #category : #'instance creation' }
@@ -56,6 +66,7 @@ SGObserver >> uninstallObservers [
 
 { #category : #'as yet unclassified' }
 SGObserver >> uninstallObserversFor: aClass [
+	aClass removeInstVarNamed: 'smallGenState'
 ]
 
 { #category : #'instance creation' }
