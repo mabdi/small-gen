@@ -96,13 +96,22 @@ SGObserver >> snapShot: thisRecord [
 ]
 
 { #category : #'as yet unclassified' }
+SGObserver >> uninstallMetaLinkOn: aMethod [
+	aMethod links
+				select: [ :metalink | metalink metaObject == self ]
+				thenDo: [ :metalink | aMethod removeLink: metalink ]
+]
+
+{ #category : #'as yet unclassified' }
 SGObserver >> uninstallObservers [
 	captureTargets  do: [ :aClass | self uninstallObserversFor: aClass ]
 ]
 
 { #category : #'as yet unclassified' }
 SGObserver >> uninstallObserversFor: aClass [
-	aClass removeInstVarNamed: 'smallGenState'
+	aClass removeInstVarNamed: 'smallGenState'.
+	aClass removeSelector: #smallGenCallRecords.
+	aClass methods do: [ :aMethod | self uninstallMetaLinkOn: aMethod ]
 ]
 
 { #category : #'instance creation' }
