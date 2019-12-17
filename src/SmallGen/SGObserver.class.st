@@ -16,8 +16,29 @@ SGObserver class >> initWith: config [
 	^ self new with: config
 ]
 
+{ #category : #adding }
+SGObserver >> addClassToCaptureList: aClass [
+	| packages |
+	packages := captureTargets collect: [ :cls | cls package ].
+	(packages includes: aClass package)
+		ifTrue: [ (captureTargets includes: aClass)
+				ifFalse: [ captureTargets add: aClass. self installObserversFor: aClass ] ]
+]
+
+{ #category : #adding }
+SGObserver >> addNewClassesToObservationTarget [
+	observations
+		do: [ :aHistory | 
+			aHistory records
+				do: [ :aRecord | 
+					aRecord args
+						do: [ :anArg | 
+							self addClassToCaptureList: anArg theClass ] ] ]
+]
+
 { #category : #'as yet unclassified' }
 SGObserver >> buildRecordFor: aReciever selector: selector withArgs: args [
+	args do: [ :arg | self addClassToCaptureList: arg class ].
 	^ SGCallRecord new
 		selector: selector;
 		args: (args collect: [ :arg | arg smallGenCallRecords copy ])
@@ -59,7 +80,8 @@ SGObserver >> installObservers [
 
 { #category : #'as yet unclassified' }
 SGObserver >> installObserversFor: aClass [
-	aClass addInstVarNamed: 'smallGenState'.
+	(aClass allInstVarNames includes: 'smallGenState') ifFalse: [ aClass addInstVarNamed:'smallGenState' ] 
+	 .
 	aClass
 		compile:
 			'smallGenCallRecords
@@ -82,12 +104,28 @@ SGObserver >> linkBeforMethodCallArguments: args receiver: aReceiver selector: s
 		ifTrue: [ self snapShot: thisRecord ]
 ]
 
+{ #category : #accessing }
+SGObserver >> maxDepth [
+	^ 3
+]
+
 { #category : #'instance creation' }
 SGObserver >> observe [
 	[ self installObservers.
 	sampleCode value ]
 		ensure: [ self uninstallObservers ].
-	self halt. "node statements last isReturn  ifTrue: [ "
+		self halt
+]
+
+{ #category : #'instance creation' }
+SGObserver >> observeMultiple [
+	self maxDepth
+		timesRepeat: [ [ self installObservers.
+			sampleCode value ]
+				ensure: [ self uninstallObservers ].
+			self halt.
+			self addNewClassesToObservationTarget.
+			self halt	"node statements last isReturn  ifTrue: [ " ]
 ]
 
 { #category : #'as yet unclassified' }
@@ -97,7 +135,7 @@ SGObserver >> snapShot: thisRecord [
 
 { #category : #'as yet unclassified' }
 SGObserver >> uninstallMetaLinkOn: aMethod [
-	aMethod links
+	aMethod ast links
 				select: [ :metalink | metalink metaObject == self ]
 				thenDo: [ :metalink | aMethod removeLink: metalink ]
 ]
@@ -109,8 +147,9 @@ SGObserver >> uninstallObservers [
 
 { #category : #'as yet unclassified' }
 SGObserver >> uninstallObserversFor: aClass [
-	aClass removeInstVarNamed: 'smallGenState'.
-	aClass removeSelector: #smallGenCallRecords.
+(aClass allInstVarNames includes: 'smallGenState')
+		ifTrue: [ aClass removeInstVarNamed: 'smallGenState' ].
+		aClass removeSelector: #smallGenCallRecords.
 	aClass methods do: [ :aMethod | self uninstallMetaLinkOn: aMethod ]
 ]
 
