@@ -2,5 +2,5 @@ Extension { #name : #Object }
 
 { #category : #'*SmallGen' }
 Object >> smallGenCallRecords [
-	^ self
+	^ SGCallHistory for: self
 ]

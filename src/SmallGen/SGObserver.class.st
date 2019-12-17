@@ -3,9 +3,10 @@ Class {
 	#superclass : #Object,
 	#instVars : [
 		'config',
-		'targets',
 		'sampleCode',
-		'observations'
+		'observations',
+		'captureTargets',
+		'observationTargets'
 	],
 	#category : #SmallGen
 }
@@ -16,16 +17,17 @@ SGObserver class >> initWith: config [
 ]
 
 { #category : #'as yet unclassified' }
-SGObserver >> buildRecordFor: selector withArgs: args [
+SGObserver >> buildRecordFor: aReciever selector: selector withArgs: args [
 	^ SGCallRecord new
 		selector: selector;
-		args: (args collect: [ :arg | arg smallGenCallRecords class = OrderedCollection ifTrue:[ arg smallGenCallRecords collect: [ :rec | rec copy ]] ifFalse: [ arg smallGenCallRecords ] ])
+		args: (args collect: [ :arg | arg smallGenCallRecords copy ])
 ]
 
 { #category : #'instance creation' }
 SGObserver >> generateObservationFor: aListOfClasses byRunning: aSampleCode [
 	sampleCode := aSampleCode.
-	targets := aListOfClasses copy.
+	captureTargets := aListOfClasses copy.
+	observationTargets:= aListOfClasses copy.
 	observations := self getAnObservation.
 	self observe.
 	^ observations
@@ -52,7 +54,7 @@ SGObserver >> installMetaLinkOn: aMethod [
 
 { #category : #'as yet unclassified' }
 SGObserver >> installObservers [
-	targets do: [ :aClass | self installObserversFor: aClass ]
+	captureTargets  do: [ :aClass | self installObserversFor: aClass ]
 ]
 
 { #category : #'as yet unclassified' }
@@ -61,7 +63,7 @@ SGObserver >> installObserversFor: aClass [
 	aClass
 		compile:
 			'smallGenCallRecords
-	^ smallGenState ifNil: [ smallGenState := OrderedCollection new ]'.
+	^ smallGenState ifNil: [ smallGenState := SGCallHistory for: self ]'.
 	aClass methods do: [ :aMethod | self installMetaLinkOn: aMethod ]
 ]
 
@@ -73,37 +75,29 @@ SGObserver >> isItSafeToAddMetaLinkTo: aMethod [
 
 { #category : #'as yet unclassified' }
 SGObserver >> linkBeforMethodCallArguments: args receiver: aReceiver selector: selector node: node [
-	| result thisRecord |
+	| thisRecord |
 	thisRecord := aReceiver smallGenCallRecords.
-	thisRecord class = OrderedCollection ifTrue:[
-	 thisRecord add: (self buildRecordFor: selector withArgs: args)].
-	"node statements last isReturn  ifTrue: [ "
-		self snapShot: thisRecord for: aReceiver 
-		 "]."
-	
+	thisRecord append: (self buildRecordFor: aReceiver selector: selector withArgs: args). 
+	(observationTargets includes: aReceiver class)
+		ifTrue: [ self snapShot: thisRecord ]
 ]
 
 { #category : #'instance creation' }
 SGObserver >> observe [
-	[self installObservers.
-	sampleCode value]
+	[ self installObservers.
+	sampleCode value ]
 		ensure: [ self uninstallObservers ].
-		self halt
+	self halt. "node statements last isReturn  ifTrue: [ "
 ]
 
 { #category : #'as yet unclassified' }
 SGObserver >> snapShot: thisRecord [
-	observations add: thisRecord copy
-]
-
-{ #category : #'as yet unclassified' }
-SGObserver >> snapShot: thisRecord for: anObject [
-	observations add: thisRecord copy; theClass: anObject class
+	observations add: (thisRecord copy)
 ]
 
 { #category : #'as yet unclassified' }
 SGObserver >> uninstallObservers [
-	targets do: [ :aClass | self uninstallObserversFor: aClass ]
+	captureTargets  do: [ :aClass | self uninstallObserversFor: aClass ]
 ]
 
 { #category : #'as yet unclassified' }

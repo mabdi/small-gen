@@ -3,8 +3,7 @@ Class {
 	#superclass : #Object,
 	#instVars : [
 		'selector',
-		'args',
-		'theClass'
+		'args'
 	],
 	#category : #SmallGen
 }
@@ -20,8 +19,11 @@ SGCallRecord >> args: anObject [
 ]
 
 { #category : #copying }
-SGCallRecord >> copy [ 
-	^ self class new args: [ :arg | arg copy ]; selector: selector 
+SGCallRecord >> copy [
+	^ self class new
+		args: (args collect: [ :arg | arg copy ]);
+		selector: selector;
+		yourself
 ]
 
 { #category : #accessing }
@@ -32,14 +34,4 @@ SGCallRecord >> selector [
 { #category : #accessing }
 SGCallRecord >> selector: anObject [
 	selector := anObject
-]
-
-{ #category : #accessing }
-SGCallRecord >> theClass [
-^theClass
-]
-
-{ #category : #accessing }
-SGCallRecord >> theClass: aClass [
-theClass:=aClass
 ]
