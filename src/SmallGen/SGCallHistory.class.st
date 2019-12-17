@@ -21,8 +21,10 @@ SGCallHistory >> append: aRecord [
 
 { #category : #accessing }
 SGCallHistory >> copy [
-	^ self class new records:
-		(records collect: [ :r | r copy ]);
+	^ self class new
+		records: (records collect: [ :r | r copy ]);
+		theClass: theClass;
+		theValue: theValue;
 		yourself
 ]
 
@@ -33,9 +35,31 @@ SGCallHistory >> for: anObject [
 	self theValue: anObject
 ]
 
+{ #category : #initialization }
+SGCallHistory >> initialize [ 
+	records := OrderedCollection new
+]
+
+{ #category : #printing }
+SGCallHistory >> printOn: aStream [
+	records isEmpty
+		ifTrue: [ aStream
+				nextPutAll: '(';
+				nextPutAll: self theClass asString;
+				nextPutAll: ': ';
+				nextPutAll: self theValue asString;
+				nextPutAll: ')' ]
+		ifFalse: [ aStream
+				nextPutAll: '(';
+				nextPutAll: self theClass asString;
+				nextPutAll: ':> ';
+				nextPutAll: ('' join: (records collect: #asString));
+				nextPutAll: ')' ]
+]
+
 { #category : #accessing }
 SGCallHistory >> records [
-	^ records ifNil: [ records := OrderedCollection new ]
+	^ records
 ]
 
 { #category : #accessing }

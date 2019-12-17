@@ -26,6 +26,16 @@ SGCallRecord >> copy [
 		yourself
 ]
 
+{ #category : #printing }
+SGCallRecord >> printOn: aStream [
+	aStream
+		nextPutAll: '[';
+		nextPutAll: selector asString;
+		space;
+		nextPutAll: ('' join: (self args collect: #asString));
+		nextPutAll: ']'
+]
+
 { #category : #accessing }
 SGCallRecord >> selector [
 	^ selector
