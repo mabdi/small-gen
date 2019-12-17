@@ -15,6 +15,13 @@ SGObserver class >> initWith: config [
 	^ self new with: config
 ]
 
+{ #category : #'as yet unclassified' }
+SGObserver >> buildRecordFor: selector withArgs: args [
+	^ SGCallRecord new
+		selector: selector;
+		args: (args collect: [ :arg | arg smallGenCallRecords class = OrderedCollection ifTrue:[ arg smallGenCallRecords collect: [ :rec | rec copy ]] ifFalse: [ arg smallGenCallRecords ] ])
+]
+
 { #category : #'instance creation' }
 SGObserver >> generateObservationFor: aListOfClasses byRunning: aSampleCode [
 	sampleCode := aSampleCode.
@@ -30,10 +37,17 @@ SGObserver >> getAnObservation [
 ]
 
 { #category : #'as yet unclassified' }
-SGObserver >> installMetaLinkOn: aMethodAst [
+SGObserver >> installMetaLinkOn: aMethod [
 	| link |
-	link := MetaLink new metaObject: self; selector: #linkBeforMethodCall; control: #before; argument: #(object).
-	aMethodAst link: link
+	(self isItSafeToAddMetaLinkTo: aMethod) ifFalse: [^ self ].
+	link := MetaLink new
+		metaObject: self;
+		selector: #linkBeforMethodCallArguments:receiver:selector:node:;
+		control: #before;
+		level: 0;
+		arguments: #(arguments receiver selector node)";
+		condition: [ :selector | selector  ] arguments: #(selector)".
+	aMethod ast link: link
 ]
 
 { #category : #'as yet unclassified' }
@@ -44,19 +58,43 @@ SGObserver >> installObservers [
 { #category : #'as yet unclassified' }
 SGObserver >> installObserversFor: aClass [
 	aClass addInstVarNamed: 'smallGenState'.
-	aClass methods do: [ :aMethod | self installMetaLinkOn: aMethod ast ]
+	aClass
+		compile:
+			'smallGenCallRecords
+	^ smallGenState ifNil: [ smallGenState := OrderedCollection new ]'.
+	aClass methods do: [ :aMethod | self installMetaLinkOn: aMethod ]
 ]
 
 { #category : #'as yet unclassified' }
-SGObserver >> linkBeforMethodCall: anObject [
-	self halt.
+SGObserver >> isItSafeToAddMetaLinkTo: aMethod [
+	({ #initialization} includes: aMethod protocol) ifTrue: [ ^ false ] .
+	^ ({ #smallGenCallRecords } includes: aMethod selector ) not
+]
+
+{ #category : #'as yet unclassified' }
+SGObserver >> linkBeforMethodCallArguments: args receiver: aReceiver selector: selector node: node [
+	| result thisRecord |
+	thisRecord := aReceiver smallGenCallRecords.
+	thisRecord class = OrderedCollection ifTrue:[
+	 thisRecord add: (self buildRecordFor: selector withArgs: args)].
+	"result := aReceiver withArgs: args executeMethod: selector.
+	result class = aReceiver class ifFalse: [ 
+		self snapShot: thisRecord 
+		 ].
+	^ result"
 ]
 
 { #category : #'instance creation' }
 SGObserver >> observe [
-	self installObservers.
-	sampleCode
-		ensure: [ self uninstallObservers ]
+	[self installObservers.
+	sampleCode value]
+		ensure: [ self uninstallObservers ].
+		self halt
+]
+
+{ #category : #'as yet unclassified' }
+SGObserver >> snapShot: thisRecord [
+	observations add: thisRecord copy
 ]
 
 { #category : #'as yet unclassified' }
