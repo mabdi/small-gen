@@ -77,11 +77,10 @@ SGObserver >> linkBeforMethodCallArguments: args receiver: aReceiver selector: s
 	thisRecord := aReceiver smallGenCallRecords.
 	thisRecord class = OrderedCollection ifTrue:[
 	 thisRecord add: (self buildRecordFor: selector withArgs: args)].
-	"result := aReceiver withArgs: args executeMethod: selector.
-	result class = aReceiver class ifFalse: [ 
-		self snapShot: thisRecord 
-		 ].
-	^ result"
+	"node statements last isReturn  ifTrue: [ "
+		self snapShot: thisRecord for: aReceiver 
+		 "]."
+	
 ]
 
 { #category : #'instance creation' }
@@ -95,6 +94,11 @@ SGObserver >> observe [
 { #category : #'as yet unclassified' }
 SGObserver >> snapShot: thisRecord [
 	observations add: thisRecord copy
+]
+
+{ #category : #'as yet unclassified' }
+SGObserver >> snapShot: thisRecord for: anObject [
+	observations add: thisRecord copy; theClass: anObject class
 ]
 
 { #category : #'as yet unclassified' }

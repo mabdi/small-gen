@@ -3,7 +3,8 @@ Class {
 	#superclass : #Object,
 	#instVars : [
 		'selector',
-		'args'
+		'args',
+		'theClass'
 	],
 	#category : #SmallGen
 }
@@ -31,4 +32,14 @@ SGCallRecord >> selector [
 { #category : #accessing }
 SGCallRecord >> selector: anObject [
 	selector := anObject
+]
+
+{ #category : #accessing }
+SGCallRecord >> theClass [
+^theClass
+]
+
+{ #category : #accessing }
+SGCallRecord >> theClass: aClass [
+theClass:=aClass
 ]
