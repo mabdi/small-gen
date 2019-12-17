@@ -18,7 +18,7 @@ SGObserver class >> initWith: config [
 { #category : #'instance creation' }
 SGObserver >> generateObservationFor: aListOfClasses byRunning: aSampleCode [
 	sampleCode := aSampleCode.
-	targets := aListOfClasses.
+	targets := aListOfClasses copy.
 	observations := self getAnObservation.
 	self observe.
 	^ observations
@@ -31,17 +31,31 @@ SGObserver >> getAnObservation [
 
 { #category : #'as yet unclassified' }
 SGObserver >> installObservers [
+	targets do: [ :aClass | self installObserversFor: aClass ]
+]
+
+{ #category : #'as yet unclassified' }
+SGObserver >> installObserversFor: aClass [
+	" add an instVariable "
+	aClass addInstVarNamed: 'smallGenState'
+
+	
 ]
 
 { #category : #'instance creation' }
 SGObserver >> observe [
 	self installObservers.
 	sampleCode
-		ensure: [ self uninstallObsevers ].
+		ensure: [ self uninstallObservers ]
 ]
 
 { #category : #'as yet unclassified' }
-SGObserver >> uninstallObsevers [
+SGObserver >> uninstallObservers [
+	targets do: [ :aClass | self uninstallObserversFor: aClass ]
+]
+
+{ #category : #'as yet unclassified' }
+SGObserver >> uninstallObserversFor: aClass [
 ]
 
 { #category : #'instance creation' }

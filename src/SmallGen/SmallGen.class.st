@@ -4,7 +4,8 @@ Class {
 	#instVars : [
 		'config',
 		'targets',
-		'sampleCode'
+		'sampleCode',
+		'observations'
 	],
 	#category : #SmallGen
 }
@@ -59,7 +60,7 @@ SmallGen >> initializeWith: aConfig [
 
 { #category : #initialization }
 SmallGen >> observe [
-	self getObserver 
+	observations := self getObserver generateObservationFor: targets byRunning: sampleCode
 ]
 
 { #category : #'as yet unclassified' }
