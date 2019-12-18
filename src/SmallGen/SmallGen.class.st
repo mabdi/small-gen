@@ -15,11 +15,15 @@ Class {
 SmallGen class >> example [
 	| config result |
 	config := SGConfig new.
-	result := (SmallGen initializeWith: config)
-		          target: SmallBank;
-		          target: SmallBank2;
-					 sampleCode: [ SmallBank example. SmallBank2 example ];
-		          generate
+	result := (self initializeWith: config)
+		target: SmallBank;
+		targetsCapture: { SmallBank };
+		sampleCode: [ | s |
+			s := SmallBank new.
+			s deposit: 1000 atRandom.
+			s balance > 100
+				ifTrue: [ s withdraw: 100 ] ];
+		generate
 ]
 
 { #category : #example }

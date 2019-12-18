@@ -67,14 +67,15 @@ SGObserver >> initialize [
 { #category : #'as yet unclassified' }
 SGObserver >> installMetaLinkOn: aMethod [
 	| link |
-	(self isItSafeToAddMetaLinkTo: aMethod) ifFalse: [ ^ self ].
+	(self isItSafeToAddMetaLinkTo: aMethod)
+		ifFalse: [ ^ self ].
 	link := MetaLink new
-		        metaObject: self;
-		        selector:
-			        #linkBeforMethodCallArguments:receiver:selector:context:;
-		        control: #before;
-		        level: 0;
-		        arguments: #( arguments receiver selector context ). 
+		metaObject: self;
+		selector: #linkInsteadMethodCallArguments:receiver:selector:context:;
+		control: #instead;
+		level: 0;
+		condition: [:alink | true ] arguments: #(link);
+		arguments: #(arguments receiver selector link).
 	aMethod ast link: link
 ]
 
@@ -109,6 +110,22 @@ SGObserver >> linkBeforMethodCallArguments: args receiver: aReceiver selector: s
 			 withArgs: args).
 	(observationTargets includes: aReceiver class) ifTrue: [ 
 		self snapShot: thisRecord ]
+]
+
+{ #category : #'as yet unclassified' }
+SGObserver >> linkInsteadMethodCallArguments: args receiver: aReceiver selector: selector context: link [
+	| thisRecord result |
+	thisRecord := self getCallRecordsFor: aReceiver.
+	thisRecord
+		append: (self buildCallRecordFor: aReceiver selector: selector withArgs: args).
+	(observationTargets includes: aReceiver class)
+		ifTrue: [ self snapShot: thisRecord ].
+	self halt.
+	link disable.
+	result := aReceiver perform: selector withArguments: args.
+	link enable.
+	self halt.
+	^ result
 ]
 
 { #category : #'instance creation' }
