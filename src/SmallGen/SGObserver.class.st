@@ -74,8 +74,7 @@ SGObserver >> installMetaLinkOn: aMethod [
 			        #linkBeforMethodCallArguments:receiver:selector:context:;
 		        control: #before;
 		        level: 0;
-		        arguments: #( arguments receiver selector context ). ";
-		condition: [ :selector | selector  ] arguments: #(selector)"
+		        arguments: #( arguments receiver selector context ). 
 	aMethod ast link: link
 ]
 
@@ -102,6 +101,7 @@ SGObserver >> linkBeforMethodCallArguments: args receiver: aReceiver selector: s
 	| thisRecord |
 	
 	thisRecord := self getCallRecordsFor: aReceiver.
+	self halt.
 	thisRecord append:
 		(self
 			 buildCallRecordFor: aReceiver
