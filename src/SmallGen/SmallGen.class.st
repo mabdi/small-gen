@@ -5,7 +5,8 @@ Class {
 		'config',
 		'targets',
 		'sampleCode',
-		'observations'
+		'observations',
+		'targetsCapture'
 	],
 	#category : #SmallGen
 }
@@ -18,6 +19,16 @@ SmallGen class >> example [
 		          target: SmallBank;
 		          target: SmallBank2;
 					 sampleCode: [ SmallBank example. SmallBank2 example ];
+		          generate
+]
+
+{ #category : #example }
+SmallGen class >> example2 [
+	
+	(self class initializeWith: SGConfig new)
+		          target: SAAssertGenerator;
+		targetsCapture: { SAAssertGenerator. SAAssertGenerator class. SAObservationFalse class . SAObservationTrue class. SAObservationNil class. SAObservationFraction class. SAObservationPrimitive  class. SAObservationCollection class. SAObservationObject class. SAObservationValue class. SAObservationAbstract class };
+					 sampleCode: [ SmallAmp example ];
 		          generate
 ]
 
@@ -60,7 +71,10 @@ SmallGen >> initializeWith: aConfig [
 
 { #category : #initialization }
 SmallGen >> observe [
-	observations := self getObserver generateObservationFor: targets byRunning: sampleCode
+	observations := self getObserver
+		                generateObservationFor: targets
+			targetsCapture: targetsCapture                 
+		byRunning: sampleCode
 ]
 
 { #category : #'as yet unclassified' }
@@ -76,4 +90,9 @@ SmallGen >> sampleCode: aCode [
 { #category : #accessing }
 SmallGen >> target: aTargetClass [
 	 targets add: aTargetClass
+]
+
+{ #category : #accessing }
+SmallGen >> targetsCapture: aClassList [
+	targetsCapture:= aClassList
 ]
