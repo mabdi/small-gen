@@ -25,7 +25,7 @@ SmallGen class >> example [
 { #category : #example }
 SmallGen class >> example2 [
 	
-	(self class initializeWith: SGConfig new)
+	(self initializeWith: SGConfig new)
 		          target: SAAssertGenerator;
 		targetsCapture: { SAAssertGenerator. SAAssertGenerator class. SAObservationFalse class . SAObservationTrue class. SAObservationNil class. SAObservationFraction class. SAObservationPrimitive  class. SAObservationCollection class. SAObservationObject class. SAObservationValue class. SAObservationAbstract class };
 					 sampleCode: [ SmallAmp example ];

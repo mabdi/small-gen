@@ -100,7 +100,7 @@ SGObserver >> isItSafeToAddMetaLinkTo: aMethod [
 { #category : #'as yet unclassified' }
 SGObserver >> linkBeforMethodCallArguments: args receiver: aReceiver selector: selector context: context [
 	| thisRecord |
-	self halt.
+	
 	thisRecord := self getCallRecordsFor: aReceiver.
 	thisRecord append:
 		(self
