@@ -97,7 +97,9 @@ SGObserver >> installMetaLinkOn: aMethod [
 		control: #after;
 		level: 0;
 		condition: [ :alink | true ] arguments: #(link);
-		arguments: #(arguments receiver selector context).	
+		arguments: #(arguments receiver selector context).
+	(aMethod ast links anySatisfy: [ :l | l metaObject = self])
+		ifTrue: [ ^ self ].
 	aMethod ast link: link.
 	aMethod ast link: link2
 ]
@@ -125,9 +127,12 @@ SGObserver >> linkAfterMethodCallArguments: args receiver: aReceiver selector: s
 	| s |
 	(observationTargets includes: aReceiver class)
 		ifTrue: [ s := callStack pop.
-	s = selector
-		ifFalse: [ self halt ] ].
-	
+			Transcript
+				show: s;
+				show: ')';
+				cr.
+			s = selector
+				ifFalse: [  ] ]
 ]
 
 { #category : #'as yet unclassified' }
@@ -139,7 +144,10 @@ SGObserver >> linkBeforeMethodCallArguments: args receiver: aReceiver selector: 
 	snapshot := true.
 	(observationTargets includes: aReceiver class)
 		ifFalse: [ snapshot := false ]
-		ifTrue: [ callStack push: selector. ].
+		ifTrue: [ callStack push: selector.
+			Transcript
+				show: '('; show: selector;
+				cr ].
 	callStack size > 1
 		ifTrue: [ snapshot := false ].
 	snapshot
