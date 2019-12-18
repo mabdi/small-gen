@@ -25,6 +25,16 @@ SGObserver >> buildCallRecordFor: aReciever selector: selector withArgs: args [
 		args: (args collect: [ :arg | (self getCallRecordsFor: arg) copy ])
 ]
 
+{ #category : #'as yet unclassified' }
+SGObserver >> callerFromContext: context [
+	| c |
+	c := context.
+	[ c sender receiver class = ReflectiveMethod ]
+		whileFalse: [ c := c sender ].
+	c := c sender sender.
+	^ c
+]
+
 { #category : #'instance creation' }
 SGObserver >> generateObservationFor: aListOfClasses byRunning: aSampleCode [
 	sampleCode := aSampleCode.
@@ -75,7 +85,7 @@ SGObserver >> installMetaLinkOn: aMethod [
 		control: #before;
 		level: 0;
 		condition: [ :alink | true ] arguments: #(link);
-		arguments: #(arguments receiver selector link).
+		arguments: #(arguments receiver selector context).
 	aMethod ast link: link
 ]
 
@@ -99,17 +109,16 @@ SGObserver >> isItSafeToAddMetaLinkTo: aMethod [
 
 { #category : #'as yet unclassified' }
 SGObserver >> linkBeforeMethodCallArguments: args receiver: aReceiver selector: selector context: context [
-	| thisRecord |
-	
+	| thisRecord callerContext callerNode callerClass |
+	callerContext := self callerFromContext: context.
+	callerNode:=callerContext sourceNodeExecuted.
+	callerClass :=callerContext receiver class. 
+	self halt.
 	thisRecord := self getCallRecordsFor: aReceiver.
-	
-	thisRecord append:
-		(self
-			 buildCallRecordFor: aReceiver
-			 selector: selector
-			 withArgs: args).
-	(observationTargets includes: aReceiver class) ifTrue: [ 
-		self snapShot: thisRecord ]
+	thisRecord
+		append: (self buildCallRecordFor: aReceiver selector: selector withArgs: args).
+	(observationTargets includes: aReceiver class)
+		ifTrue: [ self snapShot: thisRecord ]
 ]
 
 { #category : #'as yet unclassified' }
@@ -144,8 +153,8 @@ SGObserver >> snapShot: thisRecord [
 { #category : #'as yet unclassified' }
 SGObserver >> uninstallMetaLinkOn: aMethod [
 	aMethod ast links
-				select: [ :metalink | metalink metaObject == self ]
-				thenDo: [ :metalink | aMethod removeLink: metalink ]
+		select: [ :metalink | metalink metaObject == self ]
+		thenDo: [ :metalink | "aMethod removeLink: metalink" metalink uninstall ]
 ]
 
 { #category : #'as yet unclassified' }
