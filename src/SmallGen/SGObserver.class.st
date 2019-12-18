@@ -7,7 +7,9 @@ Class {
 		'observations',
 		'captureTargets',
 		'observationTargets',
-		'allObjects'
+		'allObjects',
+		'coverage',
+		'callStack'
 	],
 	#category : #SmallGen
 }
@@ -54,6 +56,7 @@ SGObserver >> generateObservationFor: aListOfClasses targetsCapture: aListOfClas
 	observationTargets := aListOfClasses copy.
 	observations := self getAnObservation.
 	allObjects := Dictionary new.
+	callStack := Stack new.
 	self observe.
 	^ observations
 ]
@@ -78,7 +81,7 @@ SGObserver >> initialize [
 
 { #category : #'as yet unclassified' }
 SGObserver >> installMetaLinkOn: aMethod [
-	| link |
+	| link link2 |
 	(self isItSafeToAddMetaLinkTo: aMethod)
 		ifFalse: [ ^ self ].
 	link := MetaLink new
@@ -88,7 +91,15 @@ SGObserver >> installMetaLinkOn: aMethod [
 		level: 0;
 		condition: [ :alink | true ] arguments: #(link);
 		arguments: #(arguments receiver selector context).
-	aMethod ast link: link
+	link2 := MetaLink new
+		metaObject: self;
+		selector: #linkAfterMethodCallArguments:receiver:selector:context:;
+		control: #after;
+		level: 0;
+		condition: [ :alink | true ] arguments: #(link);
+		arguments: #(arguments receiver selector context).	
+	aMethod ast link: link.
+	aMethod ast link: link2
 ]
 
 { #category : #'as yet unclassified' }
@@ -110,25 +121,27 @@ SGObserver >> isItSafeToAddMetaLinkTo: aMethod [
 ]
 
 { #category : #'as yet unclassified' }
+SGObserver >> linkAfterMethodCallArguments: args receiver: aReceiver selector: selector context: context [
+	| s |
+	(observationTargets includes: aReceiver class)
+		ifTrue: [ s := callStack pop.
+	s = selector
+		ifFalse: [ self halt ] ].
+	
+]
+
+{ #category : #'as yet unclassified' }
 SGObserver >> linkBeforeMethodCallArguments: args receiver: aReceiver selector: selector context: context [
-	| thisRecord callerContext callerNode callerObject snapshot |
-	callerObject := nil.
-	callerNode := nil.
-	"self halt."
-	"aReceiver isClass
-		ifFalse:"
-	callerContext := self callerFromContext: context.
-	callerNode := callerContext sourceNodeExecuted.
-	callerObject := callerContext receiver.
+	| thisRecord snapshot |
 	thisRecord := self getCallRecordsFor: aReceiver.
 	thisRecord
 		append: (self buildCallRecordFor: aReceiver selector: selector withArgs: args).
 	snapshot := true.
 	(observationTargets includes: aReceiver class)
-		ifFalse: [ snapshot := false ].
-		self halt.
-	"callerObject == aReceiver
-		ifTrue: [ snapshot := false ]."	"a call inside the same class"
+		ifFalse: [ snapshot := false ]
+		ifTrue: [ callStack push: selector. ].
+	callStack size > 1
+		ifTrue: [ snapshot := false ].
 	snapshot
 		ifTrue: [ self snapShot: thisRecord ]
 ]
