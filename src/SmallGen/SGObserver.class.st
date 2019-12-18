@@ -29,10 +29,11 @@ SGObserver >> buildCallRecordFor: aReciever selector: selector withArgs: args [
 SGObserver >> callerFromContext: context [
 	| c |
 	c := context.
-	[ c sender receiver class = ReflectiveMethod ]
-	"[ c sender method = (MetaLink >> #valueInContext:) ]"
+	"[ c sender receiver class = ReflectiveMethod ]"
+	[ c method = (MetaLink >> #valueInContext:) ]
 		whileFalse: [ c := c sender ].
-	c := c sender sender.
+	c := c sender sender sender.
+	
 	^ c
 ]
 
@@ -110,23 +111,24 @@ SGObserver >> isItSafeToAddMetaLinkTo: aMethod [
 
 { #category : #'as yet unclassified' }
 SGObserver >> linkBeforeMethodCallArguments: args receiver: aReceiver selector: selector context: context [
-	| thisRecord callerNode callerObject snapshot |
+	| thisRecord callerContext callerNode callerObject snapshot |
 	callerObject := nil.
 	callerNode := nil.
 	"self halt."
-	aReceiver isClass
-		ifFalse: [ | callerContext |
-			callerContext := self callerFromContext: context.
-			callerNode := callerContext sourceNodeExecuted.
-			callerObject := callerContext receiver ].
+	"aReceiver isClass
+		ifFalse:"
+	callerContext := self callerFromContext: context.
+	callerNode := callerContext sourceNodeExecuted.
+	callerObject := callerContext receiver.
 	thisRecord := self getCallRecordsFor: aReceiver.
 	thisRecord
 		append: (self buildCallRecordFor: aReceiver selector: selector withArgs: args).
 	snapshot := true.
 	(observationTargets includes: aReceiver class)
 		ifFalse: [ snapshot := false ].
-	callerObject == aReceiver
-		ifTrue: [ snapshot := false ].	"a call inside the same class"
+		self halt.
+	"callerObject == aReceiver
+		ifTrue: [ snapshot := false ]."	"a call inside the same class"
 	snapshot
 		ifTrue: [ self snapShot: thisRecord ]
 ]
@@ -162,7 +164,7 @@ SGObserver >> snapShot: thisRecord [
 
 { #category : #'as yet unclassified' }
 SGObserver >> uninstallMetaLinkOn: aMethod [
-	aMethod ast links
+	aMethod ast links asSet
 		select: [ :metalink | metalink metaObject == self ]
 		thenDo: [ :metalink | "aMethod removeLink: metalink" metalink uninstall ]
 ]
