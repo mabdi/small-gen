@@ -145,8 +145,10 @@ SGObserver >> linkBeforeMethodCallArguments: args receiver: aReceiver selector: 
 	(observationTargets includes: aReceiver class)
 		ifFalse: [ snapshot := false ]
 		ifTrue: [ callStack push: selector.
+			self halt.
 			Transcript
-				show: '('; show: selector;
+				show: '(';
+				show: selector;
 				cr ].
 	callStack size > 1
 		ifTrue: [ snapshot := false ].
