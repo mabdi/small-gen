@@ -78,11 +78,14 @@ SGInputGenerator >> genRefToNewObject: theClass name: aName [
 ]
 
 { #category : #'as yet unclassified' }
-SGInputGenerator >> genSTONFromStringNodeFrom: aString [
-	^ RBMessageNode
-	receiver: (RBVariableNode named: #STON)
-	selector: #fromString:
-	arguments: {(RBLiteralValueNode value: aString)}
+SGInputGenerator >> genSTONFromStringNodeFrom: aString name: aName [
+	^ self
+		genAssgnmentFor:
+			(RBMessageNode
+				receiver: (RBVariableNode named: #STON)
+				selector: #fromString:
+				arguments: {(RBLiteralValueNode value: aString)})
+		to: aName
 ]
 
 { #category : #'as yet unclassified' }
@@ -104,7 +107,7 @@ SGInputGenerator >> genStatementForHistory: aHistory name: aName alreadyGenerate
 	"if class not in capture list:"
 	(captureTargets includes: aHistory theClass)
 		ifFalse: [ statements
-				addAll: (self genSTONFromStringNodeFrom: aHistory theValue) ].
+				addAll: (self genSTONFromStringNodeFrom: aHistory theValue name: aName) ].
 	aHistory records
 		do: [ :rec | 
 			statements
