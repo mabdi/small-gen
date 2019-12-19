@@ -42,8 +42,8 @@ SGObserver >> callerFromContext: context [
 { #category : #'instance creation' }
 SGObserver >> generateObservationFor: aListOfClasses byRunning: aSampleCode [
 	sampleCode := aSampleCode.
-	captureTargets := aListOfClasses copy.
-	observationTargets:= aListOfClasses copy.
+	captureTargets := aListOfClasses asSet.
+	observationTargets := aListOfClasses asSet.
 	observations := self getAnObservation.
 	self observe.
 	^ observations
@@ -52,8 +52,8 @@ SGObserver >> generateObservationFor: aListOfClasses byRunning: aSampleCode [
 { #category : #'instance creation' }
 SGObserver >> generateObservationFor: aListOfClasses targetsCapture: aListOfClassesCapture byRunning: aSampleCode [
 	sampleCode := aSampleCode.
-	captureTargets := aListOfClassesCapture copy.
-	observationTargets := aListOfClasses copy.
+	captureTargets := aListOfClassesCapture asSet.
+	observationTargets := aListOfClasses asSet.
 	observations := self getAnObservation.
 	allObjects := Dictionary new.
 	callStack := Stack new.
@@ -193,12 +193,8 @@ SGObserver >> postCall: selector with: anArray in: aReceiver result: result [
 	| s |
 	(observationTargets includes: aReceiver class)
 		ifTrue: [ s := callStack pop.
-			Transcript
-				show: s;
-				show: ')';
-				cr.
 			s = selector
-				ifFalse: [  ] ]
+				ifFalse: [ self halt ] ]
 ]
 
 { #category : #'as yet unclassified' }
@@ -244,12 +240,7 @@ SGObserver >> uninstallObservers [
 { #category : #'as yet unclassified' }
 SGObserver >> uninstallObserversFor: aClass [
 	"aClass removeSelector: #smallGenCallRecords:."
-	aClass methods do: [ :aMethod | self uninstallProxyOn: aMethod ]
-]
-
-{ #category : #'as yet unclassified' }
-SGObserver >> uninstallProxyOn: aMethod [
-	aMethod isCompiledMethod ifFalse: [ aMethod uninstall ] 
+SGProxy cureClass: aClass
 ]
 
 { #category : #'instance creation' }

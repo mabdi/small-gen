@@ -8,6 +8,21 @@ Class {
 	#category : #SmallGen
 }
 
+{ #category : #curing }
+SGProxy class >> cureClass: aClass [
+	aClass methodDict values
+		select: [ :x | x class = self ]
+		thenDo: [ :x | self cureMethod: x ]
+]
+
+{ #category : #curing }
+SGProxy class >> cureMethod: aMethod [
+	| m |
+	m := aMethod.
+	[ m method class = self ] whileTrue: [ m := m method ].
+	m uninstall
+]
+
 { #category : #'as yet unclassified' }
 SGProxy class >> on: aCompiledMethod action: action [
     "Initialize the method tracer on aCompiledMethod and returns the method tracer.
@@ -18,8 +33,14 @@ SGProxy class >> on: aCompiledMethod action: action [
 
 { #category : #initialization }
 SGProxy >> doesNotUnderstand: aMessage [
-    "Messages not understood by myself are forwarded to the CompiledMethod I hold."
-    ^ method perform: aMessage selector withArguments: aMessage arguments
+	"Messages not understood by myself are forwarded to the CompiledMethod I hold."
+
+	^ method perform: aMessage selector withArguments: aMessage arguments
+]
+
+{ #category : #printing }
+SGProxy >> gtDisplayString [
+	^ 'SGProxy'
 ]
 
 { #category : #initialization }
@@ -38,6 +59,16 @@ SGProxy >> install [
     "
 
 	method methodClass methodDict at: method selector put: self
+]
+
+{ #category : #initialization }
+SGProxy >> method [
+	^ method
+]
+
+{ #category : #printing }
+SGProxy >> printOn: aStream [
+	aStream nextPutAll: 'SGProxy'
 ]
 
 { #category : #initialization }
