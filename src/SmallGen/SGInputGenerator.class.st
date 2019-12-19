@@ -73,6 +73,10 @@ SGInputGenerator >> genLiteralArgNodeFrom: arg [
 ]
 
 { #category : #'as yet unclassified' }
+SGInputGenerator >> genNodeFrom: aHistory [ 
+]
+
+{ #category : #'as yet unclassified' }
 SGInputGenerator >> genRefToNewObject: theClass name: aName [
 	| newCall |
 	newCall := self genCallNew: theClass.

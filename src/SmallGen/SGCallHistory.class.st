@@ -17,14 +17,6 @@ SGCallHistory class >> for: anObject [
 	^ self new for: anObject; yourself 
 ]
 
-{ #category : #'instance creation' }
-SGCallHistory class >> forPrimitive: anObject [
-	^ self new
-		for: anObject;
-		primitive: true;
-		yourself
-]
-
 { #category : #accessing }
 SGCallHistory >> append: aRecord [
 	self records add: aRecord
@@ -53,6 +45,11 @@ SGCallHistory >> copy [
 SGCallHistory >> for: anObject [
 	self initialize.
 	self theValue: anObject
+]
+
+{ #category : #'as yet unclassified' }
+SGCallHistory >> genNodeBy: aGenerator [
+	^ aGenerator genVariableArgNodeFrom: self
 ]
 
 { #category : #initialization }

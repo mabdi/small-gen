@@ -56,10 +56,11 @@ SGObserver >> getAnObservation [
 
 { #category : #'as yet unclassified' }
 SGObserver >> getCallRecordsFor: anObject [
-	^ anObject isLiteral
-		ifTrue: [ SGCallHistory forPrimitive: anObject ]
-		ifFalse:
-			[ allObjects at: anObject ifAbsentPut: (SGCallHistory for: anObject) ]
+	anObject isLiteral
+		ifTrue: [ ^ SGLiteralHistory  for: anObject ].
+	anObject isClass
+		ifTrue: [ ^ SGClassHistory for: anObject ].
+	^ allObjects at: anObject ifAbsentPut: (SGCallHistory for: anObject)
 ]
 
 { #category : #'instance creation' }
