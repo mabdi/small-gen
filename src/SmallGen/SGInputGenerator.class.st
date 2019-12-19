@@ -4,6 +4,7 @@ Class {
 	#instVars : [
 		'config',
 		'observations',
+		'captureTargets',
 		'targetClasses',
 		'generatedInputs',
 		'methodNumber'
@@ -68,10 +69,6 @@ SGInputGenerator >> genLiteralArgNodeFrom: arg [
 ]
 
 { #category : #'as yet unclassified' }
-SGInputGenerator >> genNodeFrom: aHistory [ 
-]
-
-{ #category : #'as yet unclassified' }
 SGInputGenerator >> genRefToNewObject: theClass name: aName [
 	| newCall |
 	newCall := self genCallNew: theClass.
@@ -104,11 +101,10 @@ SGInputGenerator >> genStatementForHistory: aHistory name: aName alreadyGenerate
 		ifTrue: [ ^ statements ].
 	statements
 		add: (self genRefToNewObject: aHistory theClass name: aName).
-	aHistory inCaptureDomain
+	"if class not in capture list:"
+	(captureTargets includes: aHistory theClass)
 		ifFalse: [ statements
-				addAll:
-					(self
-						genSTONFromStringNodeFrom: aHistory lastState ) ].
+				addAll: (self genSTONFromStringNodeFrom: aHistory theValue) ].
 	aHistory records
 		do: [ :rec | 
 			statements
@@ -177,11 +173,12 @@ SGInputGenerator >> generateInputsFor: anObservation [
 ]
 
 { #category : #'as yet unclassified' }
-SGInputGenerator >> generateInputsFor: aListOfTargetClass withObservation: aListOfObservation [
+SGInputGenerator >> generateInputsFor: aListOfTargetClass withObservation: aListOfObservation andCaptureTargets: anArray [
 	targetClasses := aListOfTargetClass asSet.
 	observations := aListOfObservation.
+	captureTargets:= anArray.
 	generatedInputs := Dictionary new.
-	methodNumber:= 0.
+	methodNumber := 0.
 	self generateInputs.
 	^ generatedInputs
 ]

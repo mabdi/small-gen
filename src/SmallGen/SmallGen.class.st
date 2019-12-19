@@ -63,7 +63,10 @@ SmallGen >> generate [
 
 { #category : #'as yet unclassified' }
 SmallGen >> generateUsingObservations [
-	generatedInputs := self getInputGenerator generateInputsFor: targets withObservation: observations  
+	generatedInputs := self getInputGenerator
+		generateInputsFor: targets
+		withObservation: observations
+		andCaptureTargets: targetsCapture
 ]
 
 { #category : #'as yet unclassified' }

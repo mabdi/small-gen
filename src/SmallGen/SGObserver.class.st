@@ -120,7 +120,7 @@ SGObserver >> postCall: selector with: args in: aReceiver result: result [
 SGObserver >> preCall: selector with: args in: aReceiver [
 	| thisHistory |
 	thisHistory := self getCallRecordsFor: aReceiver.
-	thisHistory inCaptureDomain: true.
+	
 	thisHistory callStack push: selector.
 	thisHistory lastState: (STON toString: aReceiver)
 ]

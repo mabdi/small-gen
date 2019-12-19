@@ -16,3 +16,9 @@ SGLiteralHistory class >> for: anObject [
 SGLiteralHistory >> genNodeBy: aGenerator [
 	^ aGenerator genLiteralArgNodeFrom: self
 ]
+
+{ #category : #accessing }
+SGLiteralHistory >> theValue: anObject [
+	super theValue: anObject. 
+	theValue := anObject
+]
