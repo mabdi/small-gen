@@ -4,11 +4,11 @@ Class {
 	#instVars : [
 		'config',
 		'sampleCode',
-		'observations',
 		'captureTargets',
 		'observationTargets',
 		'allObjects',
-		'coverage'
+		'coverage',
+		'observations'
 	],
 	#category : #SmallGen
 }
@@ -35,7 +35,7 @@ SGObserver >> generateObservationFor: aListOfClasses targetsCapture: aListOfClas
 	sampleCode := aSampleCode.
 	captureTargets := aListOfClassesCapture asSet.
 	observationTargets := aListOfClasses asSet.
-	observations := OrderedCollection new.
+	observations := Dictionary new. 
 	allObjects := Dictionary new.
 	self observe.
 	^ observations
@@ -127,7 +127,7 @@ SGObserver >> preCall: selector with: args in: aReceiver [
 
 { #category : #'as yet unclassified' }
 SGObserver >> snapShot: thisRecord [
-	observations add: (thisRecord copy)
+	observations at: thisRecord theUniqueId put: thisRecord copy
 ]
 
 { #category : #'as yet unclassified' }

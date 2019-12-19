@@ -32,9 +32,35 @@ SmallGen class >> example2 [
 	(self initializeWith: SGConfig new)
 		target: SAAssertGenerator;
 		targetsCapture:
-			{
-			SAAssertGenerator.
-			SAAssertGenerator.
+			{SAAssertGenerator.
+			SAObservationFalse.
+			SAObservationTrue.
+			SAObservationNil.
+			SAObservationFraction.
+			SAObservationPrimitive.
+			SAObservationCollection.
+			SAObservationObject.
+			SAObservationValue.
+			SAObservationAbstract};
+		sampleCode: [ SmallAmp example ];
+		generate
+]
+
+{ #category : #example }
+SmallGen class >> example3 [
+	(self initializeWith: SGConfig new)
+		target: SAObservationFalse;
+		target: SAObservationTrue;
+		target: SAObservationNil;
+		target: SAObservationFraction;
+		target: SAObservationPrimitive;
+		target: SAObservationCollection;
+		target: SAObservationObject;
+		target: SAObservationValue;
+		target: SAObservationAbstract;
+		
+		targetsCapture:
+			{SAAssertGenerator.
 			SAObservationFalse.
 			SAObservationTrue.
 			SAObservationNil.
@@ -57,7 +83,7 @@ SmallGen class >> initializeWith: aConfig [
 SmallGen >> generate [
 	self observe.
 	self generateUsingObservations.
-	self halt.
+		self halt.
 
 ]
 

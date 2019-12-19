@@ -176,10 +176,10 @@ SGInputGenerator >> generateInputsFor: anObservation [
 ]
 
 { #category : #'as yet unclassified' }
-SGInputGenerator >> generateInputsFor: aListOfTargetClass withObservation: aListOfObservation andCaptureTargets: anArray [
+SGInputGenerator >> generateInputsFor: aListOfTargetClass withObservation: aDicOfObservation andCaptureTargets: anArray [
 	targetClasses := aListOfTargetClass asSet.
-	observations := aListOfObservation.
-	captureTargets:= anArray.
+	observations := aDicOfObservation.
+	captureTargets := anArray.
 	generatedInputs := Dictionary new.
 	methodNumber := 0.
 	self generateInputs.
