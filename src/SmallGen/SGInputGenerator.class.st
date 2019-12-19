@@ -46,13 +46,19 @@ SGInputGenerator >> genAssgnmentFor: aNode to: aName [
 ]
 
 { #category : #'as yet unclassified' }
-SGInputGenerator >> genCall: selector onObjectUnderTestWithArgs: args [
+SGInputGenerator >> genCall: selector on: receiver WithArgs: args [
 	| argNodes |
 	argNodes := self genArgNodesFrom: args.
 	^ RBMessageNode
-		receiver: (RBVariableNode named: self nameForVariableObjectUnderTest)
+		receiver: (RBVariableNode named: receiver)
 		selector: selector
-		arguments: argNodes 
+		arguments: argNodes
+]
+
+{ #category : #'as yet unclassified' }
+SGInputGenerator >> genCall: selector onObjectUnderTestWithArgs: args [
+	^ self genCall: selector on: self nameForVariableObjectUnderTest WithArgs: args
+	
 ]
 
 { #category : #'as yet unclassified' }
@@ -90,21 +96,18 @@ SGInputGenerator >> genSequenceWith: anArray [
 ]
 
 { #category : #'as yet unclassified' }
-SGInputGenerator >> genStatementForArg: anArg alreadyGenerated: oldStatements [
-	self halt.
-	self flag: #TODO.
-	^ {}
-]
-
-{ #category : #'as yet unclassified' }
 SGInputGenerator >> genStatementForHistory: aHistory name: aName alreadyGenerated: oldStatements [
 	| statements |
 	statements := OrderedCollection new.
-	statements add: (self genRefToNewObject:  aHistory theClass name: aName).
+	(oldStatements
+		anySatisfy: [ :item | item isAssignment and: [ item variable name = aName ] ])
+		ifTrue: [ ^ statements ].
+	statements
+		add: (self genRefToNewObject: aHistory theClass name: aName).
 	aHistory records
 		do: [ :rec | 
 			statements
-				addAll: (self genStatementForRecord: rec alreadyGenerated: statements copy) ].
+				addAll: (self genStatementForRecord: rec receiver: aName alreadyGenerated: statements copy) ].
 	^ statements
 ]
 
@@ -114,17 +117,37 @@ SGInputGenerator >> genStatementForRecord: aRecord alreadyGenerated: oldStatemen
 	statements := OrderedCollection new.
 	aRecord args
 		do: [ :anArg | 
-			statements
+			anArg primitive
+				ifFalse: [ statements
 				addAll:
 					(self
 						genStatementForHistory: anArg
 						name: (self nameForVariableByUniqueId: anArg theUniqueId)
-						alreadyGenerated: oldStatements , statements) ].
+						alreadyGenerated: oldStatements , statements) ] ].
 	statements
 		add:
 			(self
 				genCall: aRecord selector
 				onObjectUnderTestWithArgs: aRecord args).
+	^ statements
+]
+
+{ #category : #'as yet unclassified' }
+SGInputGenerator >> genStatementForRecord: aRecord receiver: aName alreadyGenerated: oldStatements [
+	| statements |
+	statements := OrderedCollection new.
+	aRecord args
+		do: [ :anArg | 
+			anArg primitive
+				ifFalse: [ statements
+						addAll:
+							(self
+								genStatementForHistory: anArg
+								name: (self nameForVariableByUniqueId: anArg theUniqueId)
+								alreadyGenerated: oldStatements , statements) ] ].
+	statements
+		add:
+			(self genCall: aRecord selector on: aName WithArgs: aRecord args).
 	^ statements
 ]
 
