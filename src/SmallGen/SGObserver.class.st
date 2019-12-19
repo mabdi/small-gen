@@ -40,16 +40,6 @@ SGObserver >> callerFromContext: context [
 ]
 
 { #category : #'instance creation' }
-SGObserver >> generateObservationFor: aListOfClasses byRunning: aSampleCode [
-	sampleCode := aSampleCode.
-	captureTargets := aListOfClasses asSet.
-	observationTargets := aListOfClasses asSet.
-	observations := self getAnObservation.
-	self observe.
-	^ observations
-]
-
-{ #category : #'instance creation' }
 SGObserver >> generateObservationFor: aListOfClasses targetsCapture: aListOfClassesCapture byRunning: aSampleCode [
 	sampleCode := aSampleCode.
 	captureTargets := aListOfClassesCapture asSet.
@@ -185,7 +175,8 @@ SGObserver >> observe [
 	[ self installObservers.
 	sampleCode value ]
 		ensure: [ self uninstallObservers ].
-		self halt
+	allObjects removeAll.
+	^ observations
 ]
 
 { #category : #'as yet unclassified' }
