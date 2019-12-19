@@ -93,15 +93,18 @@ SGObserver >> observe [
 
 { #category : #'as yet unclassified' }
 SGObserver >> postCall: selector with: args in: aReceiver result: result [
-	| thisHistory popedSelector |
+	| thisHistory popedSelector skip |
 	thisHistory := self getCallRecordsFor: aReceiver.
 	popedSelector := thisHistory callStack pop.
 	popedSelector = selector
 		ifFalse: [ self halt.
 			self error: 'You shouldnt be here. something is wrong.' ].
 	thisHistory callStack ifNotEmpty: [ ^ self ].
+	skip := true.
 	thisHistory lastState = (STON toString: aReceiver)
-		ifTrue: [ ^ self ]. "It's a state preserving call"
+		ifFalse: [ skip := false ].	"It's state updating call"
+	result == aReceiver ifFalse: [ skip := false ]. "It returns something"
+	skip ifTrue: [ ^ self ].
 	thisHistory
 		append:
 			(self
