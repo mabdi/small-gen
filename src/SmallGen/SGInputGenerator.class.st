@@ -33,11 +33,7 @@ SGInputGenerator >> genATestMethodName [
 
 { #category : #'as yet unclassified' }
 SGInputGenerator >> genArgNodesFrom: args [
-	^ args
-		collect: [ :arg | 
-			arg primitive
-				ifTrue: [ self genLiteralArgNodeFrom: arg ]
-				ifFalse: [ self genVariableArgNodeFrom: arg ] ]
+	^ args collect: [ :arg | arg genNodeBy: self ]
 ]
 
 { #category : #'as yet unclassified' }
@@ -53,12 +49,6 @@ SGInputGenerator >> genCall: selector on: receiver WithArgs: args [
 		receiver: (RBVariableNode named: receiver)
 		selector: selector
 		arguments: argNodes
-]
-
-{ #category : #'as yet unclassified' }
-SGInputGenerator >> genCall: selector onObjectUnderTestWithArgs: args [
-	^ self genCall: selector on: self nameForVariableObjectUnderTest WithArgs: args
-	
 ]
 
 { #category : #'as yet unclassified' }
@@ -86,13 +76,6 @@ SGInputGenerator >> genRefToNewObject: theClass name: aName [
 ]
 
 { #category : #'as yet unclassified' }
-SGInputGenerator >> genRefToObjectUnderTest: theClass [
-	| newCall |
-	newCall := self genCallNew: theClass.
-	^ self genAssgnmentFor: newCall to: self nameForVariableObjectUnderTest
-]
-
-{ #category : #'as yet unclassified' }
 SGInputGenerator >> genSequenceWith: anArray [
 	| temporaries |
 	temporaries := self genTempVariablesFrom: anArray.
@@ -112,27 +95,6 @@ SGInputGenerator >> genStatementForHistory: aHistory name: aName alreadyGenerate
 		do: [ :rec | 
 			statements
 				addAll: (self genStatementForRecord: rec receiver: aName alreadyGenerated: statements copy) ].
-	^ statements
-]
-
-{ #category : #'as yet unclassified' }
-SGInputGenerator >> genStatementForRecord: aRecord alreadyGenerated: oldStatements [
-	| statements |
-	statements := OrderedCollection new.
-	aRecord args
-		do: [ :anArg | 
-			anArg primitive
-				ifFalse: [ statements
-				addAll:
-					(self
-						genStatementForHistory: anArg
-						name: (self nameForVariableByUniqueId: anArg theUniqueId)
-						alreadyGenerated: oldStatements , statements) ] ].
-	statements
-		add:
-			(self
-				genCall: aRecord selector
-				onObjectUnderTestWithArgs: aRecord args).
 	^ statements
 ]
 

@@ -1,11 +1,11 @@
 Class {
 	#name : #SGLiteralHistory,
-	#superclass : #SGCallHistory,
+	#superclass : #SGHistory,
 	#category : #SmallGen
 }
 
 { #category : #'as yet unclassified' }
-SGLiteralHistory class >> forPrimitive: anObject [
+SGLiteralHistory class >> for: anObject [
 	^ self new
 		for: anObject;
 		primitive: true;

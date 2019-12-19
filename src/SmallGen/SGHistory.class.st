@@ -1,5 +1,5 @@
 Class {
-	#name : #SGCallHistory,
+	#name : #SGHistory,
 	#superclass : #Object,
 	#instVars : [
 		'records',
@@ -7,28 +7,29 @@ Class {
 		'theValue',
 		'theUniqueId',
 		'callStack',
-		'primitive'
+		'primitive',
+		'lastState'
 	],
 	#category : #SmallGen
 }
 
 { #category : #'instance creation' }
-SGCallHistory class >> for: anObject [
+SGHistory class >> for: anObject [
 	^ self new for: anObject; yourself 
 ]
 
 { #category : #accessing }
-SGCallHistory >> append: aRecord [
+SGHistory >> append: aRecord [
 	self records add: aRecord
 ]
 
 { #category : #accessing }
-SGCallHistory >> callStack [
+SGHistory >> callStack [
 	^ callStack
 ]
 
 { #category : #accessing }
-SGCallHistory >> copy [
+SGHistory >> copy [
 	| inst |
 	inst := self class new
 		records: (records collect: [ :r | r copy ]);
@@ -42,35 +43,45 @@ SGCallHistory >> copy [
 ]
 
 { #category : #'instance creation' }
-SGCallHistory >> for: anObject [
+SGHistory >> for: anObject [
 	self initialize.
 	self theValue: anObject
 ]
 
 { #category : #'as yet unclassified' }
-SGCallHistory >> genNodeBy: aGenerator [
+SGHistory >> genNodeBy: aGenerator [
 	^ aGenerator genVariableArgNodeFrom: self
 ]
 
 { #category : #initialization }
-SGCallHistory >> initialize [
+SGHistory >> initialize [
 	records := OrderedCollection new.
 	callStack := Stack new.
 	primitive := false
 ]
 
 { #category : #accessing }
-SGCallHistory >> primitive [
+SGHistory >> lastState [
+	^ lastState
+]
+
+{ #category : #accessing }
+SGHistory >> lastState: aString [
+	lastState:=aString
+]
+
+{ #category : #accessing }
+SGHistory >> primitive [
 	^ primitive
 ]
 
 { #category : #accessing }
-SGCallHistory >> primitive: aBoolean [
+SGHistory >> primitive: aBoolean [
 	primitive:= aBoolean 
 ]
 
 { #category : #printing }
-SGCallHistory >> printOn: aStream [
+SGHistory >> printOn: aStream [
 	records isEmpty
 		ifTrue: [ aStream
 				nextPutAll: '(';
@@ -87,42 +98,42 @@ SGCallHistory >> printOn: aStream [
 ]
 
 { #category : #accessing }
-SGCallHistory >> records [
+SGHistory >> records [
 	^ records
 ]
 
 { #category : #accessing }
-SGCallHistory >> records: recs [
+SGHistory >> records: recs [
 	records := recs
 ]
 
 { #category : #accessing }
-SGCallHistory >> theClass [
+SGHistory >> theClass [
 	^ theClass
 ]
 
 { #category : #accessing }
-SGCallHistory >> theClass: anObject [
+SGHistory >> theClass: anObject [
 	theClass := anObject
 ]
 
 { #category : #accessing }
-SGCallHistory >> theUniqueId [
+SGHistory >> theUniqueId [
 	^ theUniqueId
 ]
 
 { #category : #accessing }
-SGCallHistory >> theUniqueId: anId [
+SGHistory >> theUniqueId: anId [
 	theUniqueId:=anId
 ]
 
 { #category : #accessing }
-SGCallHistory >> theValue [
+SGHistory >> theValue [
 	^ theValue
 ]
 
 { #category : #accessing }
-SGCallHistory >> theValue: anObject [
+SGHistory >> theValue: anObject [
 	theValue := anObject.
 	theUniqueId := anObject basicIdentityHash.
 	self theClass: anObject class

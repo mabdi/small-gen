@@ -3,7 +3,8 @@ Class {
 	#superclass : #Object,
 	#instVars : [
 		'selector',
-		'args'
+		'args',
+		'isVoidReturn'
 	],
 	#category : #SmallGen
 }
@@ -23,7 +24,18 @@ SGCallRecord >> copy [
 	^ self class new
 		args: (args collect: [ :arg | arg copy ]);
 		selector: selector;
+		isVoidReturn: isVoidReturn;
 		yourself
+]
+
+{ #category : #accessing }
+SGCallRecord >> isVoidReturn [
+	^ isVoidReturn
+]
+
+{ #category : #accessing }
+SGCallRecord >> isVoidReturn: anObject [
+	isVoidReturn := anObject
 ]
 
 { #category : #printing }
