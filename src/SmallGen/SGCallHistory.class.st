@@ -4,7 +4,8 @@ Class {
 	#instVars : [
 		'records',
 		'theClass',
-		'theValue'
+		'theValue',
+		'theUniqueId'
 	],
 	#category : #SmallGen
 }
@@ -25,6 +26,7 @@ SGCallHistory >> copy [
 		records: (records collect: [ :r | r copy ]);
 		theClass: theClass;
 		theValue: theValue;
+		theUniqueId: theUniqueId;
 		yourself
 ]
 
@@ -32,7 +34,8 @@ SGCallHistory >> copy [
 SGCallHistory >> for: anObject [
 	self initialize.
 	self theClass: anObject class.
-	self theValue: anObject
+	self theValue: anObject.
+	theUniqueId := anObject basicIdentityHash
 ]
 
 { #category : #initialization }
@@ -75,6 +78,16 @@ SGCallHistory >> theClass [
 { #category : #accessing }
 SGCallHistory >> theClass: anObject [
 	theClass := anObject
+]
+
+{ #category : #accessing }
+SGCallHistory >> theUniqueId [
+	^ theUniqueId
+]
+
+{ #category : #accessing }
+SGCallHistory >> theUniqueId: anId [
+	theUniqueId:=anId
 ]
 
 { #category : #accessing }
