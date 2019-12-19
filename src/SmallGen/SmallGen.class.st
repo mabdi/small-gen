@@ -7,7 +7,8 @@ Class {
 		'sampleCode',
 		'observations',
 		'targetsCapture',
-		'generatedInputs'
+		'generatedInputs',
+		'coverage'
 	],
 	#category : #SmallGen
 }
@@ -79,12 +80,24 @@ SmallGen class >> initializeWith: aConfig [
 	^ self new initializeWith: aConfig
 ]
 
+{ #category : #'as yet unclassified' }
+SmallGen >> coveragEvaluatorClass [
+	^ SGMethodCoverage 
+]
+
+{ #category : #initialization }
+SmallGen >> evaluateCoverag [
+	coverage := self getCoveragEvaluator
+		generateCoverageFor: targets
+		byRunning: generatedInputs 
+]
+
 { #category : #initialization }
 SmallGen >> generate [
 	self observe.
 	self generateUsingObservations.
-		self halt.
-
+	self evaluateCoverag.
+	self halt
 ]
 
 { #category : #'as yet unclassified' }
@@ -93,6 +106,11 @@ SmallGen >> generateUsingObservations [
 		generateInputsFor: targets
 		withObservation: observations
 		andCaptureTargets: targetsCapture
+]
+
+{ #category : #'as yet unclassified' }
+SmallGen >> getCoveragEvaluator [
+	^ self coveragEvaluatorClass initWith: config
 ]
 
 { #category : #'as yet unclassified' }

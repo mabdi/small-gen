@@ -6,8 +6,7 @@ Class {
 		'observations',
 		'captureTargets',
 		'targetClasses',
-		'generatedInputs',
-		'methodNumber'
+		'generatedInputs'
 	],
 	#category : #SmallGen
 }
@@ -24,12 +23,6 @@ SGInputGenerator >> addInputsToResult: inputs generatedFrom: anObservation [
 		at: anObservation theClass
 		ifAbsentPut: OrderedCollection new.
 		list addAll: inputs
-]
-
-{ #category : #'as yet unclassified' }
-SGInputGenerator >> genATestMethodName [
-	methodNumber := methodNumber+ 1.
-	^ 'testMetodNumber' , methodNumber asString
 ]
 
 { #category : #'as yet unclassified' }
@@ -139,6 +132,16 @@ SGInputGenerator >> genStatementForRecord: aRecord receiver: aName alreadyGenera
 ]
 
 { #category : #'as yet unclassified' }
+SGInputGenerator >> genStatementsFor: anObservation [
+	| statements |
+	statements := self
+		genStatementForHistory: anObservation
+		name: self nameForVariableObjectUnderTest
+		alreadyGenerated: {}.
+	^ self genSequenceWith: statements
+]
+
+{ #category : #'as yet unclassified' }
 SGInputGenerator >> genTempVariablesFrom: anArray [
 	^ (anArray
 		select: #isAssignment
@@ -181,7 +184,6 @@ SGInputGenerator >> generateInputsFor: aListOfTargetClass withObservation: aDicO
 	observations := aDicOfObservation.
 	captureTargets := anArray.
 	generatedInputs := Dictionary new.
-	methodNumber := 0.
 	self generateInputs.
 	^ generatedInputs
 ]
