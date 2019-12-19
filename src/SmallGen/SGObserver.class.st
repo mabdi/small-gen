@@ -111,9 +111,17 @@ SGObserver >> installObservers [
 
 { #category : #'as yet unclassified' }
 SGObserver >> installObserversFor: aClass [
-	aClass compile: 'smallGenCallRecords: observer
-	^ observer getCallRecordsFor: self'.
-	aClass methods do: [ :aMethod | self installMetaLinkOn: aMethod ]
+	"aClass methods do: [ :aMethod | self installMetaLinkOn: aMethod ]"
+	aClass methods do: [ :aMethod | self installProxyOn: aMethod ]
+]
+
+{ #category : #'as yet unclassified' }
+SGObserver >> installProxyOn: aMethod [
+	| link |
+	(self isItSafeToAddMetaLinkTo: aMethod)
+		ifFalse: [ ^ self ].
+	link := SGProxy on: aMethod action: self.
+	link install
 ]
 
 { #category : #'as yet unclassified' }
@@ -181,6 +189,40 @@ SGObserver >> observe [
 ]
 
 { #category : #'as yet unclassified' }
+SGObserver >> postCall: selector with: anArray in: aReceiver result: result [
+	| s |
+	(observationTargets includes: aReceiver class)
+		ifTrue: [ s := callStack pop.
+			Transcript
+				show: s;
+				show: ')';
+				cr.
+			s = selector
+				ifFalse: [  ] ]
+]
+
+{ #category : #'as yet unclassified' }
+SGObserver >> preCall: selector with: args in: aReceiver [
+	| thisRecord snapshot |
+	thisRecord := self getCallRecordsFor: aReceiver.
+	thisRecord
+		append: (self buildCallRecordFor: aReceiver selector: selector withArgs: args).
+	snapshot := true.
+	(observationTargets includes: aReceiver class)
+		ifFalse: [ snapshot := false ]
+		ifTrue: [ callStack push: selector.
+			self halt.
+			Transcript
+				show: '(';
+				show: selector;
+				cr ].
+	callStack size > 1
+		ifTrue: [ snapshot := false ].
+	snapshot
+		ifTrue: [ self snapShot: thisRecord ]
+]
+
+{ #category : #'as yet unclassified' }
 SGObserver >> snapShot: thisRecord [
 	observations add: (thisRecord copy)
 ]
@@ -199,8 +241,13 @@ SGObserver >> uninstallObservers [
 
 { #category : #'as yet unclassified' }
 SGObserver >> uninstallObserversFor: aClass [
-	aClass removeSelector: #smallGenCallRecords:.
-	aClass methods do: [ :aMethod | self uninstallMetaLinkOn: aMethod ]
+	"aClass removeSelector: #smallGenCallRecords:."
+	aClass methods do: [ :aMethod | self uninstallProxyOn: aMethod ]
+]
+
+{ #category : #'as yet unclassified' }
+SGObserver >> uninstallProxyOn: aMethod [
+	aMethod uninstall
 ]
 
 { #category : #'instance creation' }
