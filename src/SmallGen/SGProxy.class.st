@@ -30,13 +30,12 @@ SGProxy >> initializeOn: aCompiledMethod action: anObject [
 
 { #category : #initialization }
 SGProxy >> install [
-    "Install myself instead of the CompiledMethod in the class holding it.
+	"Install myself instead of the CompiledMethod in the class holding it.
      This way, when sending a message to the CompiledMethod (to execute it for example)
      I am notified and I can remember that the method was run.
     "
-    method methodClass methodDict
-        at: method selector
-        put: self
+	(method methodClass methodDict at: method selector) isCompiledMethod ifFalse: [ (method methodClass methodDict at: method selector) uninstall ].
+	method methodClass methodDict at: method selector put: self
 ]
 
 { #category : #initialization }

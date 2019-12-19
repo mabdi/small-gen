@@ -211,7 +211,7 @@ SGObserver >> preCall: selector with: args in: aReceiver [
 	(observationTargets includes: aReceiver class)
 		ifFalse: [ snapshot := false ]
 		ifTrue: [ callStack push: selector.
-			self halt.
+			
 			Transcript
 				show: '(';
 				show: selector;
