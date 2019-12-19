@@ -36,15 +36,14 @@ SGHistory >> copy [
 		theClass: theClass;
 		theUniqueId: theUniqueId;
 		primitive: primitive;
-		theValue: theValue
-		yourself.
+		theValue: theValue; yourself.
 	^ inst
 ]
 
 { #category : #'instance creation' }
 SGHistory >> for: anObject [
 	self initialize.
-	self theValue: anObject
+	self setTheValue: anObject
 ]
 
 { #category : #'as yet unclassified' }
@@ -108,6 +107,13 @@ SGHistory >> records: recs [
 ]
 
 { #category : #accessing }
+SGHistory >> setTheValue: anObject [
+	theUniqueId := anObject basicIdentityHash.
+	self theClass: anObject class.
+	theValue := STON toString: anObject
+]
+
+{ #category : #accessing }
 SGHistory >> theClass [
 	^ theClass
 ]
@@ -134,7 +140,5 @@ SGHistory >> theValue [
 
 { #category : #accessing }
 SGHistory >> theValue: anObject [
-	theUniqueId := anObject basicIdentityHash.
-	self theClass: anObject class.
-	theValue := STON toString: anObject 
+	theValue := anObject 
 ]

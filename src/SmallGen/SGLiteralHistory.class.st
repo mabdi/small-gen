@@ -18,7 +18,7 @@ SGLiteralHistory >> genNodeBy: aGenerator [
 ]
 
 { #category : #accessing }
-SGLiteralHistory >> theValue: anObject [
-	super theValue: anObject. 
+SGLiteralHistory >> setTheValue: anObject [
+	super setTheValue: anObject.
 	theValue := anObject
 ]
