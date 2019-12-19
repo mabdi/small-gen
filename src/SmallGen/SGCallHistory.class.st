@@ -42,23 +42,24 @@ SGCallHistory >> copy [
 		records: (records collect: [ :r | r copy ]);
 		theClass: theClass;
 		theUniqueId: theUniqueId;
+		primitive: primitive;
 		yourself.
-	primitive ifTrue: [ inst theValue: theValue ].
+	primitive
+		ifTrue: [ inst theValue: theValue ].
 	^ inst
 ]
 
 { #category : #'instance creation' }
 SGCallHistory >> for: anObject [
 	self initialize.
-	self theClass: anObject class.
-	self theValue: anObject.
-	theUniqueId := anObject basicIdentityHash
+	self theValue: anObject
 ]
 
 { #category : #initialization }
 SGCallHistory >> initialize [
 	records := OrderedCollection new.
-	callStack:= Stack new.
+	callStack := Stack new.
+	primitive := false
 ]
 
 { #category : #accessing }
@@ -125,5 +126,7 @@ SGCallHistory >> theValue [
 
 { #category : #accessing }
 SGCallHistory >> theValue: anObject [
-	theValue := anObject
+	theValue := anObject.
+	theUniqueId := anObject basicIdentityHash.
+	self theClass: anObject class
 ]

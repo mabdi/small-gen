@@ -67,6 +67,15 @@ SGInputGenerator >> genLiteralArgNodeFrom: arg [
 ]
 
 { #category : #'as yet unclassified' }
+SGInputGenerator >> genRefToNewObject: theClass name: aName [
+	| newCall |
+	newCall := self genCallNew: theClass.
+	^ self
+		genAssgnmentFor: newCall
+		to: aName
+]
+
+{ #category : #'as yet unclassified' }
 SGInputGenerator >> genRefToObjectUnderTest: theClass [
 	| newCall |
 	newCall := self genCallNew: theClass.
@@ -82,7 +91,21 @@ SGInputGenerator >> genSequenceWith: anArray [
 
 { #category : #'as yet unclassified' }
 SGInputGenerator >> genStatementForArg: anArg alreadyGenerated: oldStatements [
-	^ {  }
+	self halt.
+	self flag: #TODO.
+	^ {}
+]
+
+{ #category : #'as yet unclassified' }
+SGInputGenerator >> genStatementForHistory: aHistory name: aName alreadyGenerated: oldStatements [
+	| statements |
+	statements := OrderedCollection new.
+	statements add: (self genRefToNewObject:  aHistory theClass name: aName).
+	aHistory records
+		do: [ :rec | 
+			statements
+				addAll: (self genStatementForRecord: rec alreadyGenerated: statements copy) ].
+	^ statements
 ]
 
 { #category : #'as yet unclassified' }
@@ -94,7 +117,8 @@ SGInputGenerator >> genStatementForRecord: aRecord alreadyGenerated: oldStatemen
 			statements
 				addAll:
 					(self
-						genStatementForArg: anArg
+						genStatementForHistory: anArg
+						name: (self nameForVariableByUniqueId: anArg theUniqueId)
 						alreadyGenerated: oldStatements , statements) ].
 	statements
 		add:
@@ -134,13 +158,8 @@ SGInputGenerator >> generateInputs [
 { #category : #'as yet unclassified' }
 SGInputGenerator >> generateInputsFor: anObservation [
 	| theMethod theSequence statements |
-	statements := OrderedCollection new.
-	statements
-		add: (self genRefToObjectUnderTest: anObservation theClass).
-	anObservation records
-		do: [ :rec | 
-			statements
-				addAll: (self genStatementForRecord: rec alreadyGenerated: statements copy) ].
+	
+	statements := self genStatementForHistory: anObservation name: self nameForVariableObjectUnderTest alreadyGenerated: {}.
 	theSequence := self genSequenceWith: statements.
 	theMethod := self genTestMethodWith: theSequence.
 	^ theMethod
@@ -158,7 +177,7 @@ SGInputGenerator >> generateInputsFor: aListOfTargetClass withObservation: aList
 
 { #category : #'as yet unclassified' }
 SGInputGenerator >> nameForVariableByUniqueId: aUniqId [
-	^ 'var_', aUniqId
+	^ 'var_', aUniqId asString
 ]
 
 { #category : #'as yet unclassified' }
