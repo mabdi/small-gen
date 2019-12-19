@@ -247,7 +247,7 @@ SGObserver >> uninstallObserversFor: aClass [
 
 { #category : #'as yet unclassified' }
 SGObserver >> uninstallProxyOn: aMethod [
-	aMethod uninstall
+	aMethod isCompiledMethod ifFalse: [ aMethod uninstall ] 
 ]
 
 { #category : #'instance creation' }
