@@ -100,6 +100,8 @@ SGObserver >> postCall: selector with: args in: aReceiver result: result [
 		ifFalse: [ self halt.
 			self error: 'You shouldnt be here. something is wrong.' ].
 	thisHistory callStack ifNotEmpty: [ ^ self ].
+	thisHistory lastState = (STON toString: aReceiver)
+		ifTrue: [ ^ self ]. "It's a state preserving call"
 	thisHistory
 		append:
 			(self
@@ -116,7 +118,7 @@ SGObserver >> preCall: selector with: args in: aReceiver [
 	| thisHistory |
 	thisHistory := self getCallRecordsFor: aReceiver.
 	thisHistory callStack push: selector.
-	
+	thisHistory lastState: (STON toString: aReceiver).
 ]
 
 { #category : #'as yet unclassified' }

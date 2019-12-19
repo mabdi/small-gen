@@ -33,7 +33,6 @@ SmallGen class >> example2 [
 		target: SAAssertGenerator;
 		targetsCapture:
 			{
-			Dictionary. OrderedCollection.
 			SAAssertGenerator.
 			SAAssertGenerator.
 			SAObservationFalse.
