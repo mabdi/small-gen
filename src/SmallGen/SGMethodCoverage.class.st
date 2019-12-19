@@ -4,10 +4,16 @@ Class {
 	#instVars : [
 		'generatedInputs',
 		'targets',
-		'coverageData'
+		'coverageData',
+		'config'
 	],
 	#category : #SmallGen
 }
+
+{ #category : #'as yet unclassified' }
+SGMethodCoverage class >> initWith: config [
+	^ self new with: config
+]
 
 { #category : #'as yet unclassified' }
 SGMethodCoverage >> compileStatementsToBlock: ast [
@@ -18,7 +24,7 @@ SGMethodCoverage >> compileStatementsToBlock: ast [
 
 { #category : #'as yet unclassified' }
 SGMethodCoverage >> coverageFrom: aBlock target: aTargetClass [
-	| notExecuted methods link |
+	| executed methods link |
 	" Code from: DTTestCoverage>>#runForConfiguration: "
 	methods := aTargetClass methods.
 	link := MetaLink new
@@ -27,23 +33,24 @@ SGMethodCoverage >> coverageFrom: aBlock target: aTargetClass [
 	[ methods do: [ :meth | meth ast link: link ].
 	aBlock
 		ensure: [ link uninstall ] ] valueUnpreemptively.
-	notExecuted := methods reject: [ :each | each ast hasBeenExecuted ].
+	executed := methods select: [ :each | each ast hasBeenExecuted ].
 	methods
 		do: [ :each | each ast removeProperty: #tagExecuted ifAbsent: [  ] ].
-	^ notExecuted
+	^ executed collect: #selector
 ]
 
 { #category : #'as yet unclassified' }
 SGMethodCoverage >> generateCoverageData [
 	generatedInputs
-		keysDo: [ :target |
-			coverageData at: target put: OrderedCollection new. 
+		keysDo: [ :target | 
+			coverageData at: target put: OrderedCollection new.
 			(generatedInputs at: target)
-				do: [ :ast | 
+				do:  [ :ast | 
 					| block unCovered |
 					block := self compileStatementsToBlock: ast.
 					unCovered := self coverageFrom: block target: target.
-					(coverageData at: target) add: unCovered ] ]
+					(coverageData at: target) add: unCovered ]
+				displayingProgress: 'Coverage for: ', target name ]
 ]
 
 { #category : #'as yet unclassified' }
@@ -53,4 +60,10 @@ SGMethodCoverage >> generateCoverageFor: listOftargets byRunning: listOfGenerate
 	coverageData:=Dictionary new.
 	self generateCoverageData.
 	^ coverageData.
+]
+
+{ #category : #'instance creation' }
+SGMethodCoverage >> with: aConfig [
+	self initialize.
+	config := aConfig
 ]

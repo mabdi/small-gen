@@ -163,9 +163,8 @@ SGInputGenerator >> generateInputs [
 	observations
 		do: [ :anObservation | 
 			| inputs |
-			inputs := self generateInputsFor: anObservation.
-			self addInputsToResult: inputs generatedFrom: anObservation
-			 ]
+			inputs := self genStatementsFor: anObservation.
+			self addInputsToResult: inputs generatedFrom: anObservation ]
 ]
 
 { #category : #'as yet unclassified' }

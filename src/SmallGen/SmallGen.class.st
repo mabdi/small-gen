@@ -8,7 +8,8 @@ Class {
 		'observations',
 		'targetsCapture',
 		'generatedInputs',
-		'coverage'
+		'coverage',
+		'minimized'
 	],
 	#category : #SmallGen
 }
@@ -97,6 +98,7 @@ SmallGen >> generate [
 	self observe.
 	self generateUsingObservations.
 	self evaluateCoverag.
+	self minimizeInputs.
 	self halt
 ]
 
@@ -119,6 +121,11 @@ SmallGen >> getInputGenerator [
 ]
 
 { #category : #'as yet unclassified' }
+SmallGen >> getInputMinimizer [
+	^ self inputMinimizerClass initWith: config
+]
+
+{ #category : #'as yet unclassified' }
 SmallGen >> getObserver [
 	^ self observerClass initWith: config
 ]
@@ -138,6 +145,18 @@ SmallGen >> initializeWith: aConfig [
 { #category : #'as yet unclassified' }
 SmallGen >> inputGeneratorClass [
 	^ SGInputGenerator 
+]
+
+{ #category : #'as yet unclassified' }
+SmallGen >> inputMinimizerClass [
+	^ SGCoverageMinimize
+]
+
+{ #category : #initialization }
+SmallGen >> minimizeInputs [
+	minimized := self getInputMinimizer
+		minimizerFor: coverage
+		inputs: generatedInputs
 ]
 
 { #category : #initialization }
