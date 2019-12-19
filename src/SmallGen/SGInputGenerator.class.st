@@ -33,6 +33,11 @@ SGInputGenerator >> genATestMethodName [
 
 { #category : #'as yet unclassified' }
 SGInputGenerator >> genArgNodesFrom: args [
+	^ args
+		collect: [ :arg | 
+			arg primitive
+				ifTrue: [ self genLiteralArgNodeFrom: arg ]
+				ifFalse: [ self genVariableArgNodeFrom: arg ] ]
 ]
 
 { #category : #'as yet unclassified' }
@@ -56,6 +61,12 @@ SGInputGenerator >> genCallNew: aClass [
 ]
 
 { #category : #'as yet unclassified' }
+SGInputGenerator >> genLiteralArgNodeFrom: arg [
+	^ RBLiteralNode 
+		value: arg theValue
+]
+
+{ #category : #'as yet unclassified' }
 SGInputGenerator >> genRefToObjectUnderTest: theClass [
 	| newCall |
 	newCall := self genCallNew: theClass.
@@ -71,6 +82,7 @@ SGInputGenerator >> genSequenceWith: anArray [
 
 { #category : #'as yet unclassified' }
 SGInputGenerator >> genStatementForArg: anArg alreadyGenerated: oldStatements [
+	^ {  }
 ]
 
 { #category : #'as yet unclassified' }
@@ -84,7 +96,11 @@ SGInputGenerator >> genStatementForRecord: aRecord alreadyGenerated: oldStatemen
 					(self
 						genStatementForArg: anArg
 						alreadyGenerated: oldStatements , statements) ].
-	statements add: (self genCallOnObjectUnderTest: aRecord selector args: aRecord args).
+	statements
+		add:
+			(self
+				genCall: aRecord selector
+				onObjectUnderTestWithArgs: aRecord args).
 	^ statements
 ]
 
@@ -98,6 +114,11 @@ SGInputGenerator >> genTempVariablesFrom: anArray [
 { #category : #'as yet unclassified' }
 SGInputGenerator >> genTestMethodWith: aSequenceNode [
 	^ RBMethodNode selector: self genATestMethodName body: aSequenceNode
+]
+
+{ #category : #'as yet unclassified' }
+SGInputGenerator >> genVariableArgNodeFrom: arg [
+	^ RBVariableNode named: (self nameForVariableByUniqueId: arg theUniqueId)
 ]
 
 { #category : #'as yet unclassified' }
@@ -116,11 +137,12 @@ SGInputGenerator >> generateInputsFor: anObservation [
 	statements := OrderedCollection new.
 	statements
 		add: (self genRefToObjectUnderTest: anObservation theClass).
-	anObservation records do: [ :rec | statements
-		addAll: (self genStatementForRecord: rec alreadyGenerated: statements copy)  ].
+	anObservation records
+		do: [ :rec | 
+			statements
+				addAll: (self genStatementForRecord: rec alreadyGenerated: statements copy) ].
 	theSequence := self genSequenceWith: statements.
 	theMethod := self genTestMethodWith: theSequence.
-	self halt.
 	^ theMethod
 ]
 

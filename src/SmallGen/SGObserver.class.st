@@ -8,8 +8,7 @@ Class {
 		'captureTargets',
 		'observationTargets',
 		'allObjects',
-		'coverage',
-		'callStack'
+		'coverage'
 	],
 	#category : #SmallGen
 }
@@ -46,7 +45,6 @@ SGObserver >> generateObservationFor: aListOfClasses targetsCapture: aListOfClas
 	observationTargets := aListOfClasses asSet.
 	observations := self getAnObservation.
 	allObjects := Dictionary new.
-	callStack := Stack new.
 	self observe.
 	^ observations
 ]
@@ -59,39 +57,14 @@ SGObserver >> getAnObservation [
 { #category : #'as yet unclassified' }
 SGObserver >> getCallRecordsFor: anObject [
 	^ anObject isLiteral
-		  ifTrue: [ SGCallHistory for: anObject ]
-		  ifFalse: [ 
-		  allObjects at: anObject ifAbsentPut: (SGCallHistory for: anObject) ]
+		ifTrue: [ SGCallHistory forPrimitive: anObject ]
+		ifFalse:
+			[ allObjects at: anObject ifAbsentPut: (SGCallHistory for: anObject) ]
 ]
 
 { #category : #'instance creation' }
 SGObserver >> initialize [ 
 	allObjects := Dictionary new
-]
-
-{ #category : #'as yet unclassified' }
-SGObserver >> installMetaLinkOn: aMethod [
-	| link link2 |
-	(self isItSafeToAddMetaLinkTo: aMethod)
-		ifFalse: [ ^ self ].
-	link := MetaLink new
-		metaObject: self;
-		selector: #linkBeforeMethodCallArguments:receiver:selector:context:;
-		control: #before;
-		level: 0;
-		condition: [ :alink | true ] arguments: #(link);
-		arguments: #(arguments receiver selector context).
-	link2 := MetaLink new
-		metaObject: self;
-		selector: #linkAfterMethodCallArguments:receiver:selector:context:;
-		control: #after;
-		level: 0;
-		condition: [ :alink | true ] arguments: #(link);
-		arguments: #(arguments receiver selector context).
-	(aMethod ast links anySatisfy: [ :l | l metaObject = self])
-		ifTrue: [ ^ self ].
-	aMethod ast link: link.
-	aMethod ast link: link2
 ]
 
 { #category : #'as yet unclassified' }
@@ -121,40 +94,6 @@ SGObserver >> isItSafeToAddMetaLinkTo: aMethod [
 ]
 
 { #category : #'as yet unclassified' }
-SGObserver >> linkAfterMethodCallArguments: args receiver: aReceiver selector: selector context: context [
-	| s |
-	(observationTargets includes: aReceiver class)
-		ifTrue: [ s := callStack pop.
-			Transcript
-				show: s;
-				show: ')';
-				cr.
-			s = selector
-				ifFalse: [  ] ]
-]
-
-{ #category : #'as yet unclassified' }
-SGObserver >> linkBeforeMethodCallArguments: args receiver: aReceiver selector: selector context: context [
-	| thisRecord snapshot |
-	thisRecord := self getCallRecordsFor: aReceiver.
-	thisRecord
-		append: (self buildCallRecordFor: aReceiver selector: selector withArgs: args).
-	snapshot := true.
-	(observationTargets includes: aReceiver class)
-		ifFalse: [ snapshot := false ]
-		ifTrue: [ callStack push: selector.
-			self halt.
-			Transcript
-				show: '(';
-				show: selector;
-				cr ].
-	callStack size > 1
-		ifTrue: [ snapshot := false ].
-	snapshot
-		ifTrue: [ self snapShot: thisRecord ]
-]
-
-{ #category : #'as yet unclassified' }
 SGObserver >> linkInsteadMethodCallArguments: args receiver: aReceiver selector: selector context: link [
 	| thisRecord result |
 	thisRecord := self getCallRecordsFor: aReceiver.
@@ -181,34 +120,22 @@ SGObserver >> observe [
 
 { #category : #'as yet unclassified' }
 SGObserver >> postCall: selector with: anArray in: aReceiver result: result [
-	| s |
-	(observationTargets includes: aReceiver class)
-		ifTrue: [ s := callStack pop.
-			s = selector
-				ifFalse: [ self halt ] ]
+	| thisHistory popedSelector |
+	thisHistory := self getCallRecordsFor: aReceiver.
+	popedSelector := thisHistory callStack pop. 
+	popedSelector = selector ifFalse: [ self halt. self error: 'You shouldnt be here. something is wrong.' ]
 ]
 
 { #category : #'as yet unclassified' }
 SGObserver >> preCall: selector with: args in: aReceiver [
-	| thisRecord snapshot |
-	thisRecord := self getCallRecordsFor: aReceiver.
-	thisRecord
+	| thisHistory |
+	thisHistory := self getCallRecordsFor: aReceiver.
+	thisHistory callStack push: selector.
+	thisHistory callStack size > 1 ifTrue: [ ^ self ].
+	thisHistory
 		append: (self buildCallRecordFor: aReceiver selector: selector withArgs: args).
-	snapshot := true.
-	Transcript
-				show: aReceiver class;
-				cr.
 	(observationTargets includes: aReceiver class)
-		ifFalse: [ snapshot := false ]
-		ifTrue: [ callStack push: selector.
-			Transcript
-				show: '(';
-				show: selector;
-				cr ].
-	callStack size > 1
-		ifTrue: [ snapshot := false ].
-	snapshot
-		ifTrue: [ self snapShot: thisRecord ]
+		ifTrue: [ self snapShot: thisHistory ]
 ]
 
 { #category : #'as yet unclassified' }

@@ -5,7 +5,9 @@ Class {
 		'records',
 		'theClass',
 		'theValue',
-		'theUniqueId'
+		'theUniqueId',
+		'callStack',
+		'primitive'
 	],
 	#category : #SmallGen
 }
@@ -15,19 +17,34 @@ SGCallHistory class >> for: anObject [
 	^ self new for: anObject; yourself 
 ]
 
+{ #category : #'instance creation' }
+SGCallHistory class >> forPrimitive: anObject [
+	^ self new
+		for: anObject;
+		primitive: true;
+		yourself
+]
+
 { #category : #accessing }
 SGCallHistory >> append: aRecord [
 	self records add: aRecord
 ]
 
 { #category : #accessing }
+SGCallHistory >> callStack [
+	^ callStack
+]
+
+{ #category : #accessing }
 SGCallHistory >> copy [
-	^ self class new
+	| inst |
+	inst := self class new
 		records: (records collect: [ :r | r copy ]);
 		theClass: theClass;
-		theValue: theValue;
 		theUniqueId: theUniqueId;
-		yourself
+		yourself.
+	primitive ifTrue: [ inst theValue: theValue ].
+	^ inst
 ]
 
 { #category : #'instance creation' }
@@ -39,8 +56,19 @@ SGCallHistory >> for: anObject [
 ]
 
 { #category : #initialization }
-SGCallHistory >> initialize [ 
-	records := OrderedCollection new
+SGCallHistory >> initialize [
+	records := OrderedCollection new.
+	callStack:= Stack new.
+]
+
+{ #category : #accessing }
+SGCallHistory >> primitive [
+	^ primitive
+]
+
+{ #category : #accessing }
+SGCallHistory >> primitive: aBoolean [
+	primitive:= aBoolean 
 ]
 
 { #category : #printing }

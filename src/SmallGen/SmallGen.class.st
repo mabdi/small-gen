@@ -56,11 +56,8 @@ SmallGen class >> initializeWith: aConfig [
 SmallGen >> generate [
 	self observe.
 	self generateUsingObservations.
-"	self initState.
-	self installObservers.
-	sampleCode
-		ensure: [ self uninstallObsevers ].
-	self generate"
+	self halt.
+
 ]
 
 { #category : #'as yet unclassified' }
