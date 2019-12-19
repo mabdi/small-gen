@@ -8,7 +8,8 @@ Class {
 		'theUniqueId',
 		'callStack',
 		'primitive',
-		'lastState'
+		'lastState',
+		'inCaptureDomain'
 	],
 	#category : #SmallGen
 }
@@ -36,6 +37,7 @@ SGHistory >> copy [
 		theClass: theClass;
 		theUniqueId: theUniqueId;
 		primitive: primitive;
+		inCaptureDomain: inCaptureDomain;
 		yourself.
 	primitive
 		ifTrue: [ inst theValue: theValue ].
@@ -53,11 +55,22 @@ SGHistory >> genNodeBy: aGenerator [
 	^ aGenerator genVariableArgNodeFrom: self
 ]
 
+{ #category : #accessing }
+SGHistory >> inCaptureDomain [
+	^ inCaptureDomain
+]
+
+{ #category : #accessing }
+SGHistory >> inCaptureDomain: anObject [
+	inCaptureDomain := anObject
+]
+
 { #category : #initialization }
 SGHistory >> initialize [
 	records := OrderedCollection new.
 	callStack := Stack new.
-	primitive := false
+	primitive := false.
+	inCaptureDomain :=false
 ]
 
 { #category : #accessing }
@@ -136,5 +149,6 @@ SGHistory >> theValue [
 SGHistory >> theValue: anObject [
 	theValue := anObject.
 	theUniqueId := anObject basicIdentityHash.
+	self lastState: (STON toString: anObject ).
 	self theClass: anObject class
 ]

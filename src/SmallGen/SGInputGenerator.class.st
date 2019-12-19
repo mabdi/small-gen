@@ -81,6 +81,14 @@ SGInputGenerator >> genRefToNewObject: theClass name: aName [
 ]
 
 { #category : #'as yet unclassified' }
+SGInputGenerator >> genSTONFromStringNodeFrom: aString [
+	^ RBMessageNode
+	receiver: (RBVariableNode named: #STON)
+	selector: #fromString:
+	arguments: {(RBLiteralValueNode value: aString)}
+]
+
+{ #category : #'as yet unclassified' }
 SGInputGenerator >> genSequenceWith: anArray [
 	| temporaries |
 	temporaries := self genTempVariablesFrom: anArray.
@@ -96,10 +104,19 @@ SGInputGenerator >> genStatementForHistory: aHistory name: aName alreadyGenerate
 		ifTrue: [ ^ statements ].
 	statements
 		add: (self genRefToNewObject: aHistory theClass name: aName).
+	aHistory inCaptureDomain
+		ifFalse: [ statements
+				addAll:
+					(self
+						genSTONFromStringNodeFrom: aHistory lastState ) ].
 	aHistory records
 		do: [ :rec | 
 			statements
-				addAll: (self genStatementForRecord: rec receiver: aName alreadyGenerated: statements copy) ].
+				addAll:
+					(self
+						genStatementForRecord: rec
+						receiver: aName
+						alreadyGenerated: statements copy) ].
 	^ statements
 ]
 
