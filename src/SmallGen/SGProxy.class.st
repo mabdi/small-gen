@@ -24,8 +24,10 @@ SGProxy >> doesNotUnderstand: aMessage [
 
 { #category : #initialization }
 SGProxy >> initializeOn: aCompiledMethod action: anObject [
-    action := anObject.
-    method := aCompiledMethod
+	aCompiledMethod class = CompiledMethod
+		ifFalse: [ Error new signal: 'cannot install proxy on other object' ].
+	action := anObject.
+	method := aCompiledMethod
 ]
 
 { #category : #initialization }
@@ -34,7 +36,7 @@ SGProxy >> install [
      This way, when sending a message to the CompiledMethod (to execute it for example)
      I am notified and I can remember that the method was run.
     "
-	(method methodClass methodDict at: method selector) isCompiledMethod ifFalse: [ (method methodClass methodDict at: method selector) uninstall ].
+
 	method methodClass methodDict at: method selector put: self
 ]
 

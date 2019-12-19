@@ -208,10 +208,12 @@ SGObserver >> preCall: selector with: args in: aReceiver [
 	thisRecord
 		append: (self buildCallRecordFor: aReceiver selector: selector withArgs: args).
 	snapshot := true.
+	Transcript
+				show: aReceiver class;
+				cr.
 	(observationTargets includes: aReceiver class)
 		ifFalse: [ snapshot := false ]
 		ifTrue: [ callStack push: selector.
-			
 			Transcript
 				show: '(';
 				show: selector;
