@@ -57,6 +57,11 @@ SGInputGenerator >> genCallNew: aClass [
 ]
 
 { #category : #'as yet unclassified' }
+SGInputGenerator >> genClassNameNodeFrom: arg [
+	^ RBVariableNode named: arg theValue name
+]
+
+{ #category : #'as yet unclassified' }
 SGInputGenerator >> genLiteralArgNodeFrom: arg [
 	^ RBLiteralNode 
 		value: arg theValue

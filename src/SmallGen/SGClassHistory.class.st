@@ -6,5 +6,5 @@ Class {
 
 { #category : #'as yet unclassified' }
 SGClassHistory >> genNodeBy: aGenerator [
-	^ aGenerator genVariableArgNodeFrom: self
+	^ aGenerator genClassNameNodeFrom: self
 ]
