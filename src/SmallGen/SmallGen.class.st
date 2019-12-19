@@ -6,7 +6,8 @@ Class {
 		'targets',
 		'sampleCode',
 		'observations',
-		'targetsCapture'
+		'targetsCapture',
+		'generatedInputs'
 	],
 	#category : #SmallGen
 }
@@ -64,6 +65,12 @@ SmallGen >> generate [
 
 { #category : #'as yet unclassified' }
 SmallGen >> generateUsingObservations [
+	generatedInputs := self getInputGenerator generateInputsFor: targets withObservation: observations  
+]
+
+{ #category : #'as yet unclassified' }
+SmallGen >> getInputGenerator [
+	^ self inputGeneratorClass initWith: config
 ]
 
 { #category : #'as yet unclassified' }
@@ -81,6 +88,11 @@ SmallGen >> initializeWith: aConfig [
 	self initialize. 
 	config := aConfig.
 	
+]
+
+{ #category : #'as yet unclassified' }
+SmallGen >> inputGeneratorClass [
+	^ SGInputGenerator 
 ]
 
 { #category : #initialization }
