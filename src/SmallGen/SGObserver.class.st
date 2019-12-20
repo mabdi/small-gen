@@ -26,13 +26,14 @@ SGObserver >> buildCallRecordFor: aReciever selector: selector withArgs: args re
 		isVoidReturn: aResult == aReciever;
 		inScope: inScope;
 		returnValue: nil;
+		
+				receiverLastState: state1;
+				receiverCurrentState: state2;
 		args: (args collect: [ :arg | (self getCallRecordsFor: arg) copy ]).
 	inScope
 		ifTrue: [ aResult == aReciever
 				ifFalse: [ res returnValue: (SGHistory for: aResult) ].
-			res
-				receiverLastState: state1;
-				receiverCurrentState: state2 ].
+			 ].
 	^ res
 ]
 
