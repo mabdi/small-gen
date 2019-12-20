@@ -53,9 +53,7 @@ SGSimilarMinimize >> historyToStringNoRetNoArg: aHistory [
 SGSimilarMinimize >> minimize [
 	observations
 		keysDo: [ :target | 
-			minimizedList
-				at: target
-				put: (self minimize: (observations at: target) for: target) ]
+			(self minimize: (observations at: target) for: target) ]
 ]
 
 { #category : #'window management' }

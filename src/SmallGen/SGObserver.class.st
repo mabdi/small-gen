@@ -109,10 +109,11 @@ SGObserver >> postCall: selector with: args in: aReceiver result: result [
 	thisHistory callStack ifNotEmpty: [ ^ self ].
 	skip := true.
 	thisHistory lastState = (STON toString: aReceiver)
-		ifFalse: [ skip := false ].	"It's state updating call"
-	(observationTargets includes: aReceiver class)
-		ifTrue: [ result == aReceiver
-				ifFalse: [ skip := false ]	"It returns something on target" ].
+		ifFalse: [ "It's state updating call" skip := false ]
+		ifTrue: [ (observationTargets includes: aReceiver class)
+				ifFalse: [ skip := true ]
+				ifTrue: [ result == aReceiver
+				ifFalse: [ "It computes sth and returns on target" skip := args isNotEmpty ] ] ].
 	skip
 		ifTrue: [ ^ self ].
 	thisHistory

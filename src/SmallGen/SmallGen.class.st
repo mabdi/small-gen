@@ -9,7 +9,8 @@ Class {
 		'targetsCapture',
 		'generatedInputs',
 		'coverage',
-		'minimized'
+		'minimizedCode',
+		'minimizedObservation'
 	],
 	#category : #SmallGen
 }
@@ -96,18 +97,19 @@ SmallGen >> evaluateCoverag [
 { #category : #initialization }
 SmallGen >> generate [
 	self observe.
-	self halt.
+	
 	self minimizeCodeBySimilarity.
 	self generateUsingObservations.
 	self evaluateCoverag.
-	self minimizeCodeByCoverage
+	self minimizeCodeByCoverage.
+	self halt.
 ]
 
 { #category : #'as yet unclassified' }
 SmallGen >> generateUsingObservations [
 	generatedInputs := self getInputGenerator
 		generateInputsFor: targets
-		withObservation: observations
+		withObservation: minimizedObservation
 		andCaptureTargets: targetsCapture
 ]
 
@@ -165,14 +167,14 @@ SmallGen >> inputMinimizerSimilarityClass [
 
 { #category : #initialization }
 SmallGen >> minimizeCodeByCoverage [
-	minimized := self getInputMinimizerCoverage
+	minimizedCode := self getInputMinimizerCoverage
 		minimizerFor: coverage
 		inputs: generatedInputs
 ]
 
 { #category : #initialization }
 SmallGen >> minimizeCodeBySimilarity [
-	minimized := self getInputMinimizerSimilarity
+	minimizedObservation := self getInputMinimizerSimilarity
 		minimizerFor: observations
 ]
 
