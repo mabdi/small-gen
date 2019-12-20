@@ -97,7 +97,8 @@ SmallGen >> evaluateCoverag [
 { #category : #initialization }
 SmallGen >> generate [
 	self observe.
-	self minimizeCodeBySimilarity.
+	"self minimizeCodeBySimilarity."
+	self minimizeMethodCalls.
 	self generateUsingObservations.
 	"self evaluateCoverag.
 	self minimizeCodeByCoverage."
@@ -133,6 +134,11 @@ SmallGen >> getInputMinimizerSimilarity [
 ]
 
 { #category : #'as yet unclassified' }
+SmallGen >> getMethodCallsMinimizer [
+	^ self methodCallsMinimizerClass initWith: config
+]
+
+{ #category : #'as yet unclassified' }
 SmallGen >> getObserver [
 	^ self observerClass initWith: config
 ]
@@ -164,6 +170,11 @@ SmallGen >> inputMinimizerSimilarityClass [
 	^ SGSimilarMinimize 
 ]
 
+{ #category : #'as yet unclassified' }
+SmallGen >> methodCallsMinimizerClass [
+	^ SGMethodCallMinimize 
+]
+
 { #category : #initialization }
 SmallGen >> minimizeCodeByCoverage [
 	minimizedCode := self getInputMinimizerCoverage
@@ -174,6 +185,12 @@ SmallGen >> minimizeCodeByCoverage [
 { #category : #initialization }
 SmallGen >> minimizeCodeBySimilarity [
 	minimizedObservation := self getInputMinimizerSimilarity
+		minimizerFor: observations
+]
+
+{ #category : #initialization }
+SmallGen >> minimizeMethodCalls [
+	minimizedObservation := self getMethodCallsMinimizer
 		minimizerFor: observations
 ]
 

@@ -8,7 +8,8 @@ Class {
 		'theUniqueId',
 		'callStack',
 		'primitive',
-		'lastState'
+		'lastState',
+		'coveredMethods'
 	],
 	#category : #SmallGen
 }
@@ -40,6 +41,11 @@ SGHistory >> copy [
 	^ inst
 ]
 
+{ #category : #initialization }
+SGHistory >> coveredMethods [
+	^ coveredMethods
+]
+
 { #category : #'instance creation' }
 SGHistory >> for: anObject [
 	self initialize.
@@ -55,7 +61,8 @@ SGHistory >> genNodeBy: aGenerator [
 SGHistory >> initialize [
 	records := OrderedCollection new.
 	callStack := Stack new.
-	primitive := false.
+	coveredMethods:=Set new.
+	primitive := false
 ]
 
 { #category : #accessing }

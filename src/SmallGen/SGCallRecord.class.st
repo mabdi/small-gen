@@ -5,7 +5,10 @@ Class {
 		'selector',
 		'args',
 		'isVoidReturn',
-		'returnValue'
+		'returnValue',
+		'receiverLastState',
+		'receiverCurrentState',
+		'inScope'
 	],
 	#category : #SmallGen
 }
@@ -27,7 +30,20 @@ SGCallRecord >> copy [
 		selector: selector;
 		isVoidReturn: isVoidReturn;
 		returnValue: returnValue;
+		inScope: inScope ;
+		receiverLastState: receiverLastState;
+		receiverCurrentState: receiverCurrentState;
 		yourself
+]
+
+{ #category : #accessing }
+SGCallRecord >> inScope [
+	^ inScope
+]
+
+{ #category : #accessing }
+SGCallRecord >> inScope: anObject [
+	inScope := anObject
 ]
 
 { #category : #accessing }
@@ -48,6 +64,26 @@ SGCallRecord >> printOn: aStream [
 		space;
 		nextPutAll: ('' join: (self args collect: #asString));
 		nextPutAll: ']'
+]
+
+{ #category : #accessing }
+SGCallRecord >> receiverCurrentState [
+	^ receiverCurrentState
+]
+
+{ #category : #accessing }
+SGCallRecord >> receiverCurrentState: anObject [
+	receiverCurrentState := anObject
+]
+
+{ #category : #accessing }
+SGCallRecord >> receiverLastState [
+	^ receiverLastState
+]
+
+{ #category : #accessing }
+SGCallRecord >> receiverLastState: anObject [
+	receiverLastState := anObject
 ]
 
 { #category : #accessing }

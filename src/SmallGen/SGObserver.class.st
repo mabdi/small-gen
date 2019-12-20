@@ -19,17 +19,21 @@ SGObserver class >> initWith: config [
 ]
 
 { #category : #'as yet unclassified' }
-SGObserver >> buildCallRecordFor: aReciever selector: selector withArgs: args result: aResult [
-	| res isVoid |
-	res := nil.
-	aResult == aReciever
-		ifTrue: [ isVoid := true ]
-		ifFalse: [ res := (SGHistory for: aResult)].
-	^ SGCallRecord new
+SGObserver >> buildCallRecordFor: aReciever selector: selector withArgs: args result: aResult inScope: inScope stateBefore: state1 stateAfter: state2 [
+	| res |
+	res := SGCallRecord new
 		selector: selector;
-		isVoidReturn: isVoid;
-		returnValue: res;
-		args: (args collect: [ :arg | (self getCallRecordsFor: arg) copy ])
+		isVoidReturn: aResult == aReciever;
+		inScope: inScope;
+		returnValue: nil;
+		args: (args collect: [ :arg | (self getCallRecordsFor: arg) copy ]).
+	inScope
+		ifTrue: [ aResult == aReciever
+				ifFalse: [ res returnValue: (SGHistory for: aResult) ].
+			res
+				receiverLastState: state1;
+				receiverCurrentState: state2 ].
+	^ res
 ]
 
 { #category : #'instance creation' }
@@ -55,6 +59,11 @@ SGObserver >> getCallRecordsFor: anObject [
 	anObject isClass
 		ifTrue: [ ^ SGClassHistory for: anObject ].
 	^ allObjects at: anObject ifAbsentPut: (SGHistory for: anObject)
+]
+
+{ #category : #'as yet unclassified' }
+SGObserver >> inScope: aClass [
+	^ (observationTargets includes: aClass)
 ]
 
 { #category : #'instance creation' }
@@ -100,31 +109,25 @@ SGObserver >> observe [
 
 { #category : #'as yet unclassified' }
 SGObserver >> postCall: selector with: args in: aReceiver result: result [
-	| thisHistory popedSelector okToLog |
+	| thisHistory popedSelector inScope |
 	thisHistory := self getCallRecordsFor: aReceiver.
 	popedSelector := thisHistory callStack pop.
 	popedSelector = selector
 		ifFalse: [ self halt.
 			self error: 'You shouldnt be here. something is wrong.' ].
 	thisHistory callStack ifNotEmpty: [ ^ self ].
-	okToLog := true.
-	thisHistory lastState = (STON toString: aReceiver)
-		ifTrue: [ args isEmpty
-				ifTrue: [ okToLog := false ]
-				ifFalse: [ (observationTargets includes: aReceiver class)
-						ifTrue: [  okToLog := (result == aReceiver) not ]
-						ifFalse: [ okToLog := false ] ] ]
-		ifFalse: [ "It's state updating call" okToLog := true ].
-	okToLog
-		ifFalse: [ ^ self ].
+	inScope := self inScope: aReceiver class.
 	thisHistory
 		append:
 			(self
 				buildCallRecordFor: aReceiver
 				selector: selector
 				withArgs: args
-				result: result).
-	(observationTargets includes: aReceiver class)
+				result: result
+				inScope: inScope
+				stateBefore: thisHistory lastState
+				stateAfter: (STON toString: aReceiver)).
+	inScope
 		ifTrue: [ self snapShot: thisHistory ]
 ]
 
@@ -132,7 +135,7 @@ SGObserver >> postCall: selector with: args in: aReceiver result: result [
 SGObserver >> preCall: selector with: args in: aReceiver [
 	| thisHistory |
 	thisHistory := self getCallRecordsFor: aReceiver.
-	
+	thisHistory coveredMethods add: selector.
 	thisHistory callStack push: selector.
 	thisHistory lastState: (STON toString: aReceiver)
 ]
