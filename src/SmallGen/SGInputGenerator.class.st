@@ -161,10 +161,11 @@ SGInputGenerator >> genVariableArgNodeFrom: arg [
 { #category : #'as yet unclassified' }
 SGInputGenerator >> generateInputs [
 	observations
-		do: [ :anObservation | 
-			| inputs |
+		keysDo: [ :aTarget | 
+			
+			(observations at: aTarget) do: [:anObservation | | inputs |
 			inputs := self genStatementsFor: anObservation.
-			self addInputsToResult: inputs generatedFrom: anObservation ]
+			self addInputsToResult: inputs generatedFrom: anObservation ]]
 ]
 
 { #category : #'as yet unclassified' }

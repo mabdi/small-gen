@@ -160,7 +160,7 @@ SmallGen >> inputMinimizerCoverageClass [
 
 { #category : #'as yet unclassified' }
 SmallGen >> inputMinimizerSimilarityClass [
-	^ SGCoverageMinimize
+	^ SGSimilarMinimize 
 ]
 
 { #category : #initialization }

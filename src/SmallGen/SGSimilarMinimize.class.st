@@ -10,6 +10,11 @@ Class {
 }
 
 { #category : #'as yet unclassified' }
+SGSimilarMinimize class >> initWith: config [
+	^ self new with: config
+]
+
+{ #category : #'as yet unclassified' }
 SGSimilarMinimize >> historyToString: aHistory [
 	
 	^ self historyToString: aHistory noRet: false noArg: false
@@ -25,7 +30,7 @@ SGSimilarMinimize >> historyToString: aHistory noRet: aBoolean1 noArg: aBoolean2
 					aBoolean2
 						ifFalse: [ s nextPutAll: (', ' join: (r args collect: [ :a | a theValue ])) ].
 					aBoolean2
-						ifFalse: [ s nextPutAll: r theValue ] ] ]
+						ifFalse: [ s nextPutAll: r returnValue ] ] ]
 ]
 
 { #category : #'as yet unclassified' }
@@ -59,7 +64,7 @@ SGSimilarMinimize >> minimize: observationsList for: target [
 	dic := observationsList
 		inject: Dictionary new
 		into:
-			[ :d :aHistory | d at: (self historyToStringNoArg: aHistory) put: aHistory ].
+			[ :d :aHistory | d at: (self historyToStringNoArg: aHistory) put: aHistory; yourself ].
 	minimizedList at: target put: dic values
 ]
 
