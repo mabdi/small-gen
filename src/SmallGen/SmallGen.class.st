@@ -97,10 +97,10 @@ SmallGen >> evaluateCoverag [
 SmallGen >> generate [
 	self observe.
 	self halt.
+	self minimizeCodeBySimilarity.
 	self generateUsingObservations.
 	self evaluateCoverag.
-	self minimizeInputs.
-	
+	self minimizeCodeByCoverage
 ]
 
 { #category : #'as yet unclassified' }
@@ -122,8 +122,13 @@ SmallGen >> getInputGenerator [
 ]
 
 { #category : #'as yet unclassified' }
-SmallGen >> getInputMinimizer [
-	^ self inputMinimizerClass initWith: config
+SmallGen >> getInputMinimizerCoverage [
+	^ self inputMinimizerCoverageClass initWith: config
+]
+
+{ #category : #'as yet unclassified' }
+SmallGen >> getInputMinimizerSimilarity [
+	^ self inputMinimizerSimilarityClass  initWith: config
 ]
 
 { #category : #'as yet unclassified' }
@@ -149,15 +154,26 @@ SmallGen >> inputGeneratorClass [
 ]
 
 { #category : #'as yet unclassified' }
-SmallGen >> inputMinimizerClass [
+SmallGen >> inputMinimizerCoverageClass [
+	^ SGCoverageMinimize
+]
+
+{ #category : #'as yet unclassified' }
+SmallGen >> inputMinimizerSimilarityClass [
 	^ SGCoverageMinimize
 ]
 
 { #category : #initialization }
-SmallGen >> minimizeInputs [
-	minimized := self getInputMinimizer
+SmallGen >> minimizeCodeByCoverage [
+	minimized := self getInputMinimizerCoverage
 		minimizerFor: coverage
 		inputs: generatedInputs
+]
+
+{ #category : #initialization }
+SmallGen >> minimizeCodeBySimilarity [
+	minimized := self getInputMinimizerSimilarity
+		minimizerFor: observations
 ]
 
 { #category : #initialization }

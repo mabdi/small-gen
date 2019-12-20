@@ -4,11 +4,45 @@ Class {
 	#instVars : [
 		'config',
 		'observations',
-		'minimizedList',
-		'inputs'
+		'minimizedList'
 	],
 	#category : #SmallGen
 }
+
+{ #category : #'as yet unclassified' }
+SGSimilarMinimize >> historyToString: aHistory [
+	
+	^ self historyToString: aHistory noRet: false noArg: false
+]
+
+{ #category : #'as yet unclassified' }
+SGSimilarMinimize >> historyToString: aHistory noRet: aBoolean1 noArg: aBoolean2 [
+	^ String
+		streamContents: [ :s | 
+			aHistory records
+				do: [ :r | 
+					s nextPutAll: r selector.
+					aBoolean2
+						ifFalse: [ s nextPutAll: (', ' join: (r args collect: [ :a | a theValue ])) ].
+					aBoolean2
+						ifFalse: [ s nextPutAll: r theValue ] ] ]
+]
+
+{ #category : #'as yet unclassified' }
+SGSimilarMinimize >> historyToStringNoArg: aHistory [
+	^ self historyToString: aHistory noRet: false noArg: true
+]
+
+{ #category : #'as yet unclassified' }
+SGSimilarMinimize >> historyToStringNoRet: aHistory [
+	
+	^ self historyToString: aHistory noRet: true noArg: false
+]
+
+{ #category : #'as yet unclassified' }
+SGSimilarMinimize >> historyToStringNoRetNoArg: aHistory [
+	^ self historyToString: aHistory noRet: true noArg: true
+]
 
 { #category : #'window management' }
 SGSimilarMinimize >> minimize [
@@ -16,18 +50,22 @@ SGSimilarMinimize >> minimize [
 		keysDo: [ :target | 
 			minimizedList
 				at: target
-				put: (self minimize: (observations at: target) for: (inputs at: target)) ]
+				put: (self minimize: (observations at: target) for: target) ]
+]
+
+{ #category : #'window management' }
+SGSimilarMinimize >> minimize: observationsList for: target [
+	| dic |
+	dic := observationsList
+		inject: Dictionary new
+		into:
+			[ :d :aHistory | d at: (self historyToStringNoArg: aHistory) put: aHistory ].
+	minimizedList at: target put: dic values
 ]
 
 { #category : #'as yet unclassified' }
-SGSimilarMinimize >> minimize: aCoverageList for: aInputList [
-
-]
-
-{ #category : #'as yet unclassified' }
-SGSimilarMinimize >> minimizerFor: observationData  inputs: inputsList [
+SGSimilarMinimize >> minimizerFor: observationData [
 	observations := observationData.
-	inputs := inputsList.
 	minimizedList := Dictionary new.
 	self minimize.
 	^ minimizedList

@@ -34,13 +34,18 @@ SGObserver >> buildCallRecordFor: aReciever selector: selector withArgs: args re
 
 { #category : #'instance creation' }
 SGObserver >> generateObservationFor: aListOfClasses targetsCapture: aListOfClassesCapture byRunning: aSampleCode [
+	| result |
 	sampleCode := aSampleCode.
 	captureTargets := aListOfClassesCapture asSet.
 	observationTargets := aListOfClasses asSet.
-	observations := Dictionary new. 
+	observations := Dictionary new.
 	allObjects := Dictionary new.
 	self observe.
-	^ observations
+	result := Dictionary new.
+	(observations
+		do: [ :val | (result at: val theClass ifAbsentPut: OrderedCollection new) add: val ])
+		asDictionary.
+	^ result
 ]
 
 { #category : #'as yet unclassified' }
