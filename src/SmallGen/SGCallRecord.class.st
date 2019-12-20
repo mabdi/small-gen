@@ -4,7 +4,8 @@ Class {
 	#instVars : [
 		'selector',
 		'args',
-		'isVoidReturn'
+		'isVoidReturn',
+		'returnValue'
 	],
 	#category : #SmallGen
 }
@@ -25,6 +26,7 @@ SGCallRecord >> copy [
 		args: (args collect: [ :arg | arg copy ]);
 		selector: selector;
 		isVoidReturn: isVoidReturn;
+		returnValue: returnValue;
 		yourself
 ]
 
@@ -46,6 +48,16 @@ SGCallRecord >> printOn: aStream [
 		space;
 		nextPutAll: ('' join: (self args collect: #asString));
 		nextPutAll: ']'
+]
+
+{ #category : #accessing }
+SGCallRecord >> returnValue [
+	^ returnValue
+]
+
+{ #category : #accessing }
+SGCallRecord >> returnValue: anObject [
+	returnValue := anObject
 ]
 
 { #category : #accessing }

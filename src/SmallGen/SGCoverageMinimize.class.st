@@ -29,7 +29,7 @@ SGCoverageMinimize >> minimize: aCoverageList for: aInputList [
 	| indexesToRemove compare result |
 	compare := [ :item :item2 :loc :loc2 | 
 	(item allSatisfy: [ :selector | item2 includes: selector ])
-		ifTrue: [ loc > loc2 ]
+		ifTrue: [ loc >= loc2 ]
 		ifFalse: [ false ] ].
 	indexesToRemove := OrderedCollection new.
 	aCoverageList
@@ -37,14 +37,14 @@ SGCoverageMinimize >> minimize: aCoverageList for: aInputList [
 			aCoverageList
 				withIndexDo: [ :item2 :index2 | 
 					index = index2
-						ifFalse: [ 
-							(indexesToRemove includes: index2)ifFalse: [
-							(compare
-								value: item
-								value: item2
-								value: (aInputList at: index) statements size
-								value: (aInputList at: index2) statements size)
-								ifTrue: [ indexesToRemove add: index ] ] ]] ].
+						ifFalse: [ [ (indexesToRemove includes: index) not
+								and: [ (indexesToRemove includes: index2) not ] ]
+								ifTrue: [ (compare
+										value: item
+										value: item2
+										value: (aInputList at: index) statements size
+										value: (aInputList at: index2) statements size)
+										ifTrue: [ indexesToRemove add: index ] ] ] ] ].
 	result := OrderedCollection new.
 	aInputList
 		withIndexDo: [ :item :index | 

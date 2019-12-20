@@ -96,10 +96,11 @@ SmallGen >> evaluateCoverag [
 { #category : #initialization }
 SmallGen >> generate [
 	self observe.
+	self halt.
 	self generateUsingObservations.
 	self evaluateCoverag.
 	self minimizeInputs.
-	self halt
+	
 ]
 
 { #category : #'as yet unclassified' }

@@ -20,13 +20,15 @@ SGObserver class >> initWith: config [
 
 { #category : #'as yet unclassified' }
 SGObserver >> buildCallRecordFor: aReciever selector: selector withArgs: args result: aResult [
-	| isVoid |
-	self flag: #TODO.	"capture return value."
+	| res isVoid |
+	res := nil.
 	aResult == aReciever
-		ifTrue: [ isVoid := true ].
+		ifTrue: [ isVoid := true ]
+		ifFalse: [ res := (SGHistory for: aResult)].
 	^ SGCallRecord new
 		selector: selector;
 		isVoidReturn: isVoid;
+		returnValue: res;
 		args: (args collect: [ :arg | (self getCallRecordsFor: arg) copy ])
 ]
 
@@ -103,8 +105,11 @@ SGObserver >> postCall: selector with: args in: aReceiver result: result [
 	skip := true.
 	thisHistory lastState = (STON toString: aReceiver)
 		ifFalse: [ skip := false ].	"It's state updating call"
-	result == aReceiver ifFalse: [ skip := false ]. "It returns something"
-	skip ifTrue: [ ^ self ].
+	(observationTargets includes: aReceiver class)
+		ifTrue: [ result == aReceiver
+				ifFalse: [ skip := false ]	"It returns something on target" ].
+	skip
+		ifTrue: [ ^ self ].
 	thisHistory
 		append:
 			(self
