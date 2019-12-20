@@ -30,7 +30,7 @@ SGSimilarMinimize >> historyToString: aHistory noRet: aBoolean1 noArg: aBoolean2
 					aBoolean2
 						ifFalse: [ s nextPutAll: (', ' join: (r args collect: [ :a | a theValue ])) ].
 					aBoolean2
-						ifFalse: [ s nextPutAll: r returnValue ] ] ]
+						ifFalse: [ s nextPutAll: r returnValue asString  ] ] ]
 ]
 
 { #category : #'as yet unclassified' }
@@ -61,8 +61,10 @@ SGSimilarMinimize >> minimize: observationsList for: target [
 	| dic |
 	dic := observationsList
 		inject: Dictionary new
-		into:
-			[ :d :aHistory | d at: (self historyToStringNoArg: aHistory) put: aHistory; yourself ].
+		into: [ :d :aHistory | 
+			d
+				at: (self historyToStringNoArg: aHistory) put: aHistory;
+				yourself ].
 	minimizedList at: target put: dic values
 ]
 

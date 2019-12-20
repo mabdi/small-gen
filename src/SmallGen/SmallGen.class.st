@@ -97,12 +97,11 @@ SmallGen >> evaluateCoverag [
 { #category : #initialization }
 SmallGen >> generate [
 	self observe.
-	
 	self minimizeCodeBySimilarity.
 	self generateUsingObservations.
-	self evaluateCoverag.
-	self minimizeCodeByCoverage.
-	self halt.
+	"self evaluateCoverag.
+	self minimizeCodeByCoverage."
+	self halt
 ]
 
 { #category : #'as yet unclassified' }
