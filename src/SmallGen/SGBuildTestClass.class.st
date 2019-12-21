@@ -20,7 +20,7 @@ SGBuildTestClass >> addCommentForClass [
 { #category : #'as yet unclassified' }
 SGBuildTestClass >> buildClass [
 	| className |
-	className := self testClassNameFor: theClass.
+	className := self testClassName.
 	resultClass := TestCase
 		subclass: className
 		instanceVariableNames: ''
@@ -52,13 +52,12 @@ SGBuildTestClass >> installMethods [
 
 { #category : #'as yet unclassified' }
 SGBuildTestClass >> removeIfExists [
-	
 	(self defaultTempPackage asPackageIfAbsent: [ ^ true ]) classes
-		do: [ :item | item removeFromSystem ]
-		displayingProgress: 'Clear temp classes.'
+		select: [ :item | item name = self testClassName ]
+		thenDo: [ :item | item removeFromSystem ]
 ]
 
 { #category : #'as yet unclassified' }
-SGBuildTestClass >> testClassNameFor: inputClass [
-	^ (inputClass name , 'Test') asSymbol
+SGBuildTestClass >> testClassName [
+	^ (theClass name , 'GenTest') asSymbol
 ]
