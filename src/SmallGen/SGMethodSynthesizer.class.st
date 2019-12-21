@@ -29,7 +29,7 @@ SGMethodSynthesizer >> addInputsToResult: inputs generatedFrom: anObservation [
 { #category : #'as yet unclassified' }
 SGMethodSynthesizer >> genATestMethodName [
 	methodNumber := methodNumber+ 1.
-	^ 'testMetodNumber' , methodNumber
+	^ 'testMetodNumber' , methodNumber asString 
 ]
 
 { #category : #'as yet unclassified' }
