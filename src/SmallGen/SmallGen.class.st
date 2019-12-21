@@ -36,6 +36,7 @@ SmallGen class >> example2 [
 			SAObservationFraction.
 			SAObservationPrimitive.
 			SAObservationCollection.
+			SAObservationError.
 			SAObservationObject.
 			SAObservationValue.
 			SAObservationAbstract};
