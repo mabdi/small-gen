@@ -10,7 +10,7 @@ Class {
 		'coverage',
 		'observations'
 	],
-	#category : #SmallGen
+	#category : #'SmallGen-Observation'
 }
 
 { #category : #'as yet unclassified' }

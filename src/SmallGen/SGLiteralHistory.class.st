@@ -1,7 +1,7 @@
 Class {
 	#name : #SGLiteralHistory,
 	#superclass : #SGHistory,
-	#category : #SmallGen
+	#category : #'SmallGen-Model'
 }
 
 { #category : #'as yet unclassified' }

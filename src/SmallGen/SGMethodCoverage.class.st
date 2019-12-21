@@ -7,7 +7,7 @@ Class {
 		'coverageData',
 		'config'
 	],
-	#category : #SmallGen
+	#category : #'SmallGen-Experiment'
 }
 
 { #category : #'as yet unclassified' }

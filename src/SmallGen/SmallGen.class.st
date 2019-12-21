@@ -12,7 +12,7 @@ Class {
 		'minimizedCode',
 		'minimizedObservation'
 	],
-	#category : #SmallGen
+	#category : #'SmallGen-Core'
 }
 
 { #category : #example }
@@ -82,12 +82,7 @@ SmallGen class >> initializeWith: aConfig [
 	^ self new initializeWith: aConfig
 ]
 
-{ #category : #'as yet unclassified' }
-SmallGen >> coveragEvaluatorClass [
-	^ SGMethodCoverage 
-]
-
-{ #category : #initialization }
+{ #category : #experiment }
 SmallGen >> evaluateCoverag [
 	coverage := self getCoveragEvaluator
 		generateCoverageFor: targets
@@ -96,51 +91,43 @@ SmallGen >> evaluateCoverag [
 
 { #category : #initialization }
 SmallGen >> generate [
-	self observe.
-	self minimizeMethodCalls.
-	self minimizeCodeBySimilarity.
-	self generateUsingObservations.
+	self stepObservation.
+	self stepFilterRecords.
+	self stepFilterHistories.
+	self stepSynthesis.
 	"self evaluateCoverag.
 	self minimizeCodeByCoverage."
 	self halt
 ]
 
-{ #category : #'as yet unclassified' }
-SmallGen >> generateUsingObservations [
-	generatedInputs := self getInputGenerator
-		generateInputsFor: targets
-		withObservation: minimizedObservation
-		andCaptureTargets: targetsCapture
-]
-
-{ #category : #'as yet unclassified' }
+{ #category : #experiment }
 SmallGen >> getCoveragEvaluator [
-	^ self coveragEvaluatorClass initWith: config
+	^ SGMethodCoverage  initWith: config
 ]
 
 { #category : #'as yet unclassified' }
 SmallGen >> getInputGenerator [
-	^ self inputGeneratorClass initWith: config
+	^ SGInputGenerator initWith: config
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #experiment }
 SmallGen >> getInputMinimizerCoverage [
-	^ self inputMinimizerCoverageClass initWith: config
+	^ SGCoverageFilter  initWith: config
 ]
 
 { #category : #'as yet unclassified' }
 SmallGen >> getInputMinimizerSimilarity [
-	^ self inputMinimizerSimilarityClass  initWith: config
+	^ SGSimilarFilter initWith: config
 ]
 
 { #category : #'as yet unclassified' }
 SmallGen >> getMethodCallsMinimizer [
-	^ self methodCallsMinimizerClass initWith: config
+	^ SGMethodCallFilter initWith: config
 ]
 
 { #category : #'as yet unclassified' }
 SmallGen >> getObserver [
-	^ self observerClass initWith: config
+	^ SGObserver initWith: config
 ]
 
 { #category : #initialization }
@@ -155,61 +142,44 @@ SmallGen >> initializeWith: aConfig [
 	
 ]
 
-{ #category : #'as yet unclassified' }
-SmallGen >> inputGeneratorClass [
-	^ SGInputGenerator 
-]
-
-{ #category : #'as yet unclassified' }
-SmallGen >> inputMinimizerCoverageClass [
-	^ SGCoverageMinimize
-]
-
-{ #category : #'as yet unclassified' }
-SmallGen >> inputMinimizerSimilarityClass [
-	^ SGSimilarMinimize 
-]
-
-{ #category : #'as yet unclassified' }
-SmallGen >> methodCallsMinimizerClass [
-	^ SGMethodCallMinimize 
-]
-
-{ #category : #initialization }
+{ #category : #experiment }
 SmallGen >> minimizeCodeByCoverage [
 	minimizedCode := self getInputMinimizerCoverage
 		minimizerFor: coverage
 		inputs: generatedInputs
 ]
 
-{ #category : #initialization }
-SmallGen >> minimizeCodeBySimilarity [
-	minimizedObservation := self getInputMinimizerSimilarity
-		minimizerFor: minimizedObservation
+{ #category : #accessing }
+SmallGen >> sampleCode: aCode [
+	sampleCode:= aCode
 ]
 
 { #category : #initialization }
-SmallGen >> minimizeMethodCalls [
-	minimizedObservation := self getMethodCallsMinimizer
+SmallGen >> stepFilterHistories [
+	observations := self getInputMinimizerSimilarity
 		minimizerFor: observations
 ]
 
 { #category : #initialization }
-SmallGen >> observe [
+SmallGen >> stepFilterRecords [
+	observations := self getMethodCallsMinimizer
+		minimizerFor: observations
+]
+
+{ #category : #initialization }
+SmallGen >> stepObservation [
 	observations := self getObserver
-		                generateObservationFor: targets
-			targetsCapture: targetsCapture                 
+		generateObservationFor: targets
+		targetsCapture: targetsCapture
 		byRunning: sampleCode
 ]
 
 { #category : #'as yet unclassified' }
-SmallGen >> observerClass [
-	^ SGObserver 
-]
-
-{ #category : #accessing }
-SmallGen >> sampleCode: aCode [
-	sampleCode:= aCode
+SmallGen >> stepSynthesis [
+	generatedInputs := self getInputGenerator
+		generateInputsFor: targets
+		withObservation: minimizedObservation
+		andCaptureTargets: targetsCapture
 ]
 
 { #category : #accessing }

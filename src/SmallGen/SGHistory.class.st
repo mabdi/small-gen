@@ -12,7 +12,7 @@ Class {
 		'coveredMethods',
 		'inScope'
 	],
-	#category : #SmallGen
+	#category : #'SmallGen-Model'
 }
 
 { #category : #'instance creation' }

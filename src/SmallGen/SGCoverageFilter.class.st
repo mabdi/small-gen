@@ -1,5 +1,5 @@
 Class {
-	#name : #SGCoverageMinimize,
+	#name : #SGCoverageFilter,
 	#superclass : #Object,
 	#instVars : [
 		'config',
@@ -7,16 +7,16 @@ Class {
 		'minimizedList',
 		'inputs'
 	],
-	#category : #SmallGen
+	#category : #'SmallGen-Experiment'
 }
 
 { #category : #'as yet unclassified' }
-SGCoverageMinimize class >> initWith: config [
+SGCoverageFilter class >> initWith: config [
 	^ self new with: config
 ]
 
 { #category : #'as yet unclassified' }
-SGCoverageMinimize >> minimize [
+SGCoverageFilter >> minimize [
 	coverage
 		keysDo: [ :target | 
 			minimizedList
@@ -25,7 +25,7 @@ SGCoverageMinimize >> minimize [
 ]
 
 { #category : #'as yet unclassified' }
-SGCoverageMinimize >> minimize: aCoverageList for: aInputList [
+SGCoverageFilter >> minimize: aCoverageList for: aInputList [
 	| indexesToRemove compare result |
 	compare := [ :item :item2 :loc :loc2 | 
 	(item allSatisfy: [ :selector | item2 includes: selector ])
@@ -54,7 +54,7 @@ SGCoverageMinimize >> minimize: aCoverageList for: aInputList [
 ]
 
 { #category : #'as yet unclassified' }
-SGCoverageMinimize >> minimizerFor: coverageData inputs: inputsList [
+SGCoverageFilter >> minimizerFor: coverageData inputs: inputsList [
 	coverage := coverageData.
 	inputs := inputsList.
 	minimizedList := Dictionary new.
@@ -63,7 +63,7 @@ SGCoverageMinimize >> minimizerFor: coverageData inputs: inputsList [
 ]
 
 { #category : #'instance creation' }
-SGCoverageMinimize >> with: aConfig [
+SGCoverageFilter >> with: aConfig [
 	self initialize.
 	config := aConfig
 ]

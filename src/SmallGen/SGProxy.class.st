@@ -5,7 +5,7 @@ Class {
 		'method',
 		'action'
 	],
-	#category : #SmallGen
+	#category : #'SmallGen-Observation'
 }
 
 { #category : #curing }

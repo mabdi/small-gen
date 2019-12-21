@@ -10,7 +10,7 @@ Class {
 		'receiverCurrentState',
 		'coverage'
 	],
-	#category : #SmallGen
+	#category : #'SmallGen-Model'
 }
 
 { #category : #accessing }

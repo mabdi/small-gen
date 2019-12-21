@@ -8,7 +8,7 @@ Class {
 		'targetClasses',
 		'generatedInputs'
 	],
-	#category : #SmallGen
+	#category : #'SmallGen-Synthesis'
 }
 
 { #category : #'as yet unclassified' }

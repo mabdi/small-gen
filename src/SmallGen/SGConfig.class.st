@@ -1,5 +1,5 @@
 Class {
 	#name : #SGConfig,
 	#superclass : #Object,
-	#category : #SmallGen
+	#category : #'SmallGen-Model'
 }

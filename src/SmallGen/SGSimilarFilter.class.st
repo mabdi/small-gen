@@ -1,21 +1,21 @@
 Class {
-	#name : #SGSimilarMinimize,
+	#name : #SGSimilarFilter,
 	#superclass : #Object,
 	#instVars : [
 		'config',
 		'observations',
 		'minimizedList'
 	],
-	#category : #SmallGen
+	#category : #'SmallGen-Filtering'
 }
 
 { #category : #'as yet unclassified' }
-SGSimilarMinimize class >> initWith: config [
+SGSimilarFilter class >> initWith: config [
 	^ self new with: config
 ]
 
 { #category : #'as yet unclassified' }
-SGSimilarMinimize >> calcAllRecordNumber: aHistory [
+SGSimilarFilter >> calcAllRecordNumber: aHistory [
 	^ aHistory records
 		inject: 0
 		into: [ :sum :rec | 
@@ -25,7 +25,7 @@ SGSimilarMinimize >> calcAllRecordNumber: aHistory [
 ]
 
 { #category : #'as yet unclassified' }
-SGSimilarMinimize >> historyToCoverageString: aHistory [
+SGSimilarFilter >> historyToCoverageString: aHistory [
 	^ ',' join: ((aHistory records reject: [ :r | r coverage isNil ])
 		inject: Set new
 		into: [ :s :r | 
@@ -35,13 +35,13 @@ SGSimilarMinimize >> historyToCoverageString: aHistory [
 ]
 
 { #category : #'as yet unclassified' }
-SGSimilarMinimize >> historyToString: aHistory [
+SGSimilarFilter >> historyToString: aHistory [
 	
 	^ self historyToString: aHistory noRet: false noArg: false
 ]
 
 { #category : #'as yet unclassified' }
-SGSimilarMinimize >> historyToString: aHistory noRet: aBoolean1 noArg: aBoolean2 [
+SGSimilarFilter >> historyToString: aHistory noRet: aBoolean1 noArg: aBoolean2 [
 	^ String
 		streamContents: [ :s | 
 			aHistory records
@@ -54,30 +54,30 @@ SGSimilarMinimize >> historyToString: aHistory noRet: aBoolean1 noArg: aBoolean2
 ]
 
 { #category : #'as yet unclassified' }
-SGSimilarMinimize >> historyToStringNoArg: aHistory [
+SGSimilarFilter >> historyToStringNoArg: aHistory [
 	^ self historyToString: aHistory noRet: false noArg: true
 ]
 
 { #category : #'as yet unclassified' }
-SGSimilarMinimize >> historyToStringNoRet: aHistory [
+SGSimilarFilter >> historyToStringNoRet: aHistory [
 	
 	^ self historyToString: aHistory noRet: true noArg: false
 ]
 
 { #category : #'as yet unclassified' }
-SGSimilarMinimize >> historyToStringNoRetNoArg: aHistory [
+SGSimilarFilter >> historyToStringNoRetNoArg: aHistory [
 	^ self historyToString: aHistory noRet: true noArg: true
 ]
 
 { #category : #'window management' }
-SGSimilarMinimize >> minimize [
+SGSimilarFilter >> minimize [
 	observations
 		keysDo: [ :target | 
 			(self minimize: (observations at: target) for: target) ]
 ]
 
 { #category : #'window management' }
-SGSimilarMinimize >> minimize: observationsList for: target [
+SGSimilarFilter >> minimize: observationsList for: target [
 	| dic loc |
 	"dic := observationsList
 		inject: Dictionary new
@@ -100,7 +100,7 @@ SGSimilarMinimize >> minimize: observationsList for: target [
 ]
 
 { #category : #'as yet unclassified' }
-SGSimilarMinimize >> minimizerFor: observationData [
+SGSimilarFilter >> minimizerFor: observationData [
 	observations := observationData.
 	minimizedList := Dictionary new.
 	self minimize.
@@ -108,7 +108,7 @@ SGSimilarMinimize >> minimizerFor: observationData [
 ]
 
 { #category : #'instance creation' }
-SGSimilarMinimize >> with: aConfig [
+SGSimilarFilter >> with: aConfig [
 	self initialize.
 	config := aConfig
 ]
