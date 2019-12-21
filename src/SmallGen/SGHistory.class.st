@@ -9,7 +9,8 @@ Class {
 		'callStack',
 		'primitive',
 		'lastState',
-		'coveredMethods'
+		'coveredMethods',
+		'inScope'
 	],
 	#category : #SmallGen
 }
@@ -37,7 +38,9 @@ SGHistory >> copy [
 		theClass: theClass;
 		theUniqueId: theUniqueId;
 		primitive: primitive;
-		theValue: theValue; yourself.
+		theValue: theValue;
+		inScope: inScope;
+		yourself.
 	^ inst
 ]
 
@@ -55,6 +58,16 @@ SGHistory >> for: anObject [
 { #category : #'as yet unclassified' }
 SGHistory >> genNodeBy: aGenerator [
 	^ aGenerator genVariableArgNodeFrom: self
+]
+
+{ #category : #accessing }
+SGHistory >> inScope [
+	^ inScope
+]
+
+{ #category : #accessing }
+SGHistory >> inScope: anObject [
+	inScope := anObject
 ]
 
 { #category : #initialization }

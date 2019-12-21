@@ -44,17 +44,21 @@ SGMethodCallMinimize class >> initWith: config [
 ]
 
 { #category : #testing }
-SGMethodCallMinimize >> isOkToDeleteCallRecord: callRecord [
-	| okToDelete |
-	
-	okToDelete := false.
-	callRecord receiverLastState = callRecord receiverCurrentState
-		ifTrue: [ callRecord args isEmpty
-				ifTrue: [ okToDelete := true ]
-				ifFalse: [ callRecord inScope
-						ifTrue: [ okToDelete := callRecord isVoidReturn ]
-						ifFalse: [ okToDelete := true ] ] ]
-		ifFalse: [ okToDelete := false ].
+SGMethodCallMinimize >> isOkToDeleteCallRecord: callRecord inScope: inScope [
+	| okToDelete stateUpdated deepCoverage isVoid |
+	stateUpdated := callRecord receiverLastState
+		~= callRecord receiverCurrentState.
+	deepCoverage := callRecord coverage 
+		ifNil: [ false ]
+		ifNotNil: [ callRecord coverage size > 1 ].
+	isVoid := callRecord isVoidReturn.
+	okToDelete := stateUpdated
+		ifTrue: [ false ]
+		ifFalse: [ inScope
+				ifTrue: [ deepCoverage
+						ifTrue: [ isVoid ]
+						ifFalse: [ true ] ]
+				ifFalse: [ true ] ].
 	okToDelete
 		ifFalse: [ callRecord args do: [ :item | self minimizeHistory: item ] ].
 	^ okToDelete
@@ -74,13 +78,19 @@ SGMethodCallMinimize >> minimize [
 SGMethodCallMinimize >> minimizeHistory: history [
 	^ history
 		records:
-			(history records reject: [ :item | self isOkToDeleteCallRecord: item ]);
-			yourself 
+			(history records reject: [ :item | self isOkToDeleteCallRecord: item inScope: history inScope ]);
+		yourself
 ]
 
 { #category : #'as yet unclassified' }
 SGMethodCallMinimize >> minimizerFor: observationData [
-	observations := observationData copy.
+	observations := Dictionary new.
+	observationData
+		keysDo: [ :key | 
+			observations
+				at: key
+				put: ((observationData at: key)
+				collect: [ :h | h copy ]) ].
 	self minimize.
 	^ observations
 ]

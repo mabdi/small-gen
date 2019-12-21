@@ -8,7 +8,7 @@ Class {
 		'returnValue',
 		'receiverLastState',
 		'receiverCurrentState',
-		'inScope'
+		'coverage'
 	],
 	#category : #SmallGen
 }
@@ -30,20 +30,20 @@ SGCallRecord >> copy [
 		selector: selector;
 		isVoidReturn: isVoidReturn;
 		returnValue: returnValue;
-		inScope: inScope ;
 		receiverLastState: receiverLastState;
 		receiverCurrentState: receiverCurrentState;
+		coverage: coverage;
 		yourself
 ]
 
 { #category : #accessing }
-SGCallRecord >> inScope [
-	^ inScope
+SGCallRecord >> coverage [
+	^ coverage
 ]
 
 { #category : #accessing }
-SGCallRecord >> inScope: anObject [
-	inScope := anObject
+SGCallRecord >> coverage: anObject [
+	coverage := anObject
 ]
 
 { #category : #accessing }

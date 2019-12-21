@@ -18,25 +18,6 @@ SGObserver class >> initWith: config [
 	^ self new with: config
 ]
 
-{ #category : #'as yet unclassified' }
-SGObserver >> buildCallRecordFor: aReciever selector: selector withArgs: args result: aResult inScope: inScope stateBefore: state1 stateAfter: state2 [
-	| res |
-	res := SGCallRecord new
-		selector: selector;
-		isVoidReturn: aResult == aReciever;
-		inScope: inScope;
-		returnValue: nil;
-		
-				receiverLastState: state1;
-				receiverCurrentState: state2;
-		args: (args collect: [ :arg | (self getCallRecordsFor: arg) copy ]).
-	inScope
-		ifTrue: [ aResult == aReciever
-				ifFalse: [ res returnValue: (SGHistory for: aResult) ].
-			 ].
-	^ res
-]
-
 { #category : #'instance creation' }
 SGObserver >> generateObservationFor: aListOfClasses targetsCapture: aListOfClassesCapture byRunning: aSampleCode [
 	| result |
@@ -56,10 +37,15 @@ SGObserver >> generateObservationFor: aListOfClasses targetsCapture: aListOfClas
 { #category : #'as yet unclassified' }
 SGObserver >> getCallRecordsFor: anObject [
 	anObject isLiteral
-		ifTrue: [ ^ SGLiteralHistory  for: anObject ].
+		ifTrue: [ ^ SGLiteralHistory for: anObject ].
 	anObject isClass
 		ifTrue: [ ^ SGClassHistory for: anObject ].
-	^ allObjects at: anObject ifAbsentPut: (SGHistory for: anObject)
+	^ allObjects
+		at: anObject
+		ifAbsentPut:
+			((SGHistory for: anObject)
+				inScope: (self inScope: anObject class);
+				yourself)
 ]
 
 { #category : #'as yet unclassified' }
@@ -110,25 +96,27 @@ SGObserver >> observe [
 
 { #category : #'as yet unclassified' }
 SGObserver >> postCall: selector with: args in: aReceiver result: result [
-	| thisHistory popedSelector inScope |
+	| thisHistory popedSelector res |
 	thisHistory := self getCallRecordsFor: aReceiver.
 	popedSelector := thisHistory callStack pop.
 	popedSelector = selector
-		ifFalse: [ self halt.
-			self error: 'You shouldnt be here. something is wrong.' ].
+		ifFalse: [ self error: 'You shouldnt be here. something is wrong.' ].
 	thisHistory callStack ifNotEmpty: [ ^ self ].
-	inScope := self inScope: aReceiver class.
-	thisHistory
-		append:
-			(self
-				buildCallRecordFor: aReceiver
-				selector: selector
-				withArgs: args
-				result: result
-				inScope: inScope
-				stateBefore: thisHistory lastState
-				stateAfter: (STON toString: aReceiver)).
-	inScope
+	res := SGCallRecord new
+		selector: selector;
+		isVoidReturn: result == aReceiver;
+		returnValue: nil;
+		receiverLastState: thisHistory lastState;
+		receiverCurrentState: (STON toString: aReceiver);
+		args: (args collect: [ :arg | (self getCallRecordsFor: arg) copy ]).
+	thisHistory inScope
+		ifTrue: [ res coverage: thisHistory coveredMethods copy.
+			result == aReceiver
+				ifFalse: [ res returnValue: (SGHistory for: result) ] ].
+	
+	thisHistory append: res.
+	thisHistory coveredMethods removeAll.
+	thisHistory inScope
 		ifTrue: [ self snapShot: thisHistory ]
 ]
 

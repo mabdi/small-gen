@@ -97,6 +97,7 @@ SmallGen >> evaluateCoverag [
 { #category : #initialization }
 SmallGen >> generate [
 	self observe.
+	
 	"self minimizeCodeBySimilarity."
 	self minimizeMethodCalls.
 	self generateUsingObservations.
