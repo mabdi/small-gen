@@ -28,23 +28,17 @@ Internal Representation and Key Implementation Points.
     Implementation Points
 "
 Class {
-	#name : #SGMethodCallFilter,
+	#name : #SGRecordFilter,
 	#superclass : #Object,
 	#instVars : [
-		'config',
 		'observations',
 		'observationTargets'
 	],
 	#category : #'SmallGen-Filtering'
 }
 
-{ #category : #'as yet unclassified' }
-SGMethodCallFilter class >> initWith: config [
-	^ self new with: config
-]
-
 { #category : #testing }
-SGMethodCallFilter >> isOkToDeleteCallRecord: callRecord inScope: inScope [
+SGRecordFilter >> isOkToDeleteCallRecord: callRecord inScope: inScope [
 	| okToDelete stateUpdated deepCoverage isVoid |
 	stateUpdated := callRecord receiverLastState
 		~= callRecord receiverCurrentState.
@@ -65,7 +59,7 @@ SGMethodCallFilter >> isOkToDeleteCallRecord: callRecord inScope: inScope [
 ]
 
 { #category : #'window management' }
-SGMethodCallFilter >> minimize [
+SGRecordFilter >> minimize [
 	observations
 		keysDo: [ :target | 
 			| histories |
@@ -75,7 +69,7 @@ SGMethodCallFilter >> minimize [
 ]
 
 { #category : #'window management' }
-SGMethodCallFilter >> minimizeHistory: history [
+SGRecordFilter >> minimizeHistory: history [
 	^ history
 		records:
 			(history records reject: [ :item | self isOkToDeleteCallRecord: item inScope: history inScope ]);
@@ -83,7 +77,7 @@ SGMethodCallFilter >> minimizeHistory: history [
 ]
 
 { #category : #'as yet unclassified' }
-SGMethodCallFilter >> minimizerFor: observationData [
+SGRecordFilter >> minimizerFor: observationData [
 	observations := Dictionary new.
 	observationData
 		keysDo: [ :key | 
@@ -93,10 +87,4 @@ SGMethodCallFilter >> minimizerFor: observationData [
 				collect: [ :h | h copy ]) ].
 	self minimize.
 	^ observations
-]
-
-{ #category : #'instance creation' }
-SGMethodCallFilter >> with: aConfig [
-	self initialize.
-	config := aConfig
 ]

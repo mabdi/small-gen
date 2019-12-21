@@ -2,7 +2,6 @@ Class {
 	#name : #SmallGen,
 	#superclass : #Object,
 	#instVars : [
-		'config',
 		'targets',
 		'sampleCode',
 		'observations',
@@ -17,11 +16,9 @@ Class {
 
 { #category : #example }
 SmallGen class >> example [
-	| config result |
-	config := SGConfig new.
-	result := (self initializeWith: config)
+	^ self new
 		target: SmallBank;
-		targetsCapture: { SmallBank };
+		targetsCapture: {SmallBank};
 		sampleCode: [ | s |
 			s := SmallBank new.
 			s deposit: 1000 atRandom.
@@ -32,7 +29,7 @@ SmallGen class >> example [
 
 { #category : #example }
 SmallGen class >> example2 [
-	(self initializeWith: SGConfig new)
+	^ self new
 		target: SAAssertGenerator;
 		targetsCapture:
 			{SAAssertGenerator.
@@ -51,7 +48,7 @@ SmallGen class >> example2 [
 
 { #category : #example }
 SmallGen class >> example3 [
-	(self initializeWith: SGConfig new)
+	^ self new
 		target: SAObservationFalse;
 		target: SAObservationTrue;
 		target: SAObservationNil;
@@ -61,7 +58,6 @@ SmallGen class >> example3 [
 		target: SAObservationObject;
 		target: SAObservationValue;
 		target: SAObservationAbstract;
-		
 		targetsCapture:
 			{SAAssertGenerator.
 			SAObservationFalse.
@@ -77,19 +73,14 @@ SmallGen class >> example3 [
 		generate
 ]
 
-{ #category : #example }
-SmallGen class >> initializeWith: aConfig [
-	^ self new initializeWith: aConfig
-]
-
 { #category : #experiment }
 SmallGen >> evaluateCoverag [
-	coverage := self getCoveragEvaluator
+	coverage := SGMethodCoverage new
 		generateCoverageFor: targets
-		byRunning: generatedInputs 
+		byRunning: generatedInputs
 ]
 
-{ #category : #initialization }
+{ #category : #action }
 SmallGen >> generate [
 	self stepObservation.
 	self stepFilterRecords.
@@ -100,51 +91,14 @@ SmallGen >> generate [
 	self halt
 ]
 
-{ #category : #experiment }
-SmallGen >> getCoveragEvaluator [
-	^ SGMethodCoverage  initWith: config
-]
-
-{ #category : #'as yet unclassified' }
-SmallGen >> getInputGenerator [
-	^ SGInputGenerator initWith: config
-]
-
-{ #category : #experiment }
-SmallGen >> getInputMinimizerCoverage [
-	^ SGCoverageFilter  initWith: config
-]
-
-{ #category : #'as yet unclassified' }
-SmallGen >> getInputMinimizerSimilarity [
-	^ SGSimilarFilter initWith: config
-]
-
-{ #category : #'as yet unclassified' }
-SmallGen >> getMethodCallsMinimizer [
-	^ SGMethodCallFilter initWith: config
-]
-
-{ #category : #'as yet unclassified' }
-SmallGen >> getObserver [
-	^ SGObserver initWith: config
-]
-
 { #category : #initialization }
 SmallGen >> initialize [ 
 	targets := OrderedCollection new
 ]
 
-{ #category : #initialization }
-SmallGen >> initializeWith: aConfig [
-	self initialize. 
-	config := aConfig.
-	
-]
-
 { #category : #experiment }
 SmallGen >> minimizeCodeByCoverage [
-	minimizedCode := self getInputMinimizerCoverage
+	minimizedCode := SGCoverageFilter new
 		minimizerFor: coverage
 		inputs: generatedInputs
 ]
@@ -154,29 +108,29 @@ SmallGen >> sampleCode: aCode [
 	sampleCode:= aCode
 ]
 
-{ #category : #initialization }
+{ #category : #steps }
 SmallGen >> stepFilterHistories [
-	observations := self getInputMinimizerSimilarity
+	observations := SGHistoryFilter new 
 		minimizerFor: observations
 ]
 
-{ #category : #initialization }
+{ #category : #steps }
 SmallGen >> stepFilterRecords [
-	observations := self getMethodCallsMinimizer
+	observations := SGRecordFilter new
 		minimizerFor: observations
 ]
 
-{ #category : #initialization }
+{ #category : #steps }
 SmallGen >> stepObservation [
-	observations := self getObserver
+	observations := SGObserver new
 		generateObservationFor: targets
 		targetsCapture: targetsCapture
 		byRunning: sampleCode
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #steps }
 SmallGen >> stepSynthesis [
-	generatedInputs := self getInputGenerator
+	generatedInputs := SGInputGenerator new
 		generateInputsFor: targets
 		withObservation: minimizedObservation
 		andCaptureTargets: targetsCapture
