@@ -60,6 +60,11 @@ SGHistory >> genNodeBy: aGenerator [
 	^ aGenerator genVariableArgNodeFrom: self
 ]
 
+{ #category : #'as yet unclassified' }
+SGHistory >> genNotInScopeNodeBy: aGenerator name: aName [
+	^ aGenerator genSTONFromStringNodeFrom: self theValue name: aName
+]
+
 { #category : #accessing }
 SGHistory >> inScope [
 	^ inScope
@@ -130,7 +135,7 @@ SGHistory >> records: recs [
 SGHistory >> setTheValue: anObject [
 	theUniqueId := anObject basicIdentityHash.
 	self theClass: anObject class.
-	theValue := STON toString: anObject
+	theValue := SGHelpers new serialize: anObject
 ]
 
 { #category : #accessing }

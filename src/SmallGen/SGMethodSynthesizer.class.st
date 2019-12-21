@@ -105,9 +105,8 @@ SGMethodSynthesizer >> genStatementForHistory: aHistory name: aName alreadyGener
 	statements
 		add: (self genRefToNewObject: aHistory theClass name: aName).
 	"if class not in capture list:"
-	(captureTargets includes: aHistory theClass)
-		ifFalse: [ statements
-				addAll: (self genSTONFromStringNodeFrom: aHistory theValue name: aName) ].
+	aHistory inScope
+		ifFalse: [ statements addAll: (aHistory genNotInScopeNodeBy: self name: aName) ].
 	aHistory records
 		do: [ :rec | 
 			statements

@@ -107,13 +107,12 @@ SGObserver >> postCall: selector with: args in: aReceiver result: result [
 		isVoidReturn: result == aReceiver;
 		returnValue: nil;
 		receiverLastState: thisHistory lastState;
-		receiverCurrentState: (STON toString: aReceiver);
+		receiverCurrentState: (SGHelpers new serialize: aReceiver);
 		args: (args collect: [ :arg | (self getCallRecordsFor: arg) copy ]).
 	thisHistory inScope
 		ifTrue: [ res coverage: thisHistory coveredMethods copy.
 			result == aReceiver
 				ifFalse: [ res returnValue: (SGHistory for: result) ] ].
-	
 	thisHistory append: res.
 	thisHistory coveredMethods removeAll.
 	thisHistory inScope
@@ -126,7 +125,7 @@ SGObserver >> preCall: selector with: args in: aReceiver [
 	thisHistory := self getCallRecordsFor: aReceiver.
 	thisHistory coveredMethods add: selector.
 	thisHistory callStack push: selector.
-	thisHistory lastState: (STON toString: aReceiver)
+	thisHistory lastState: (SGHelpers new serialize: aReceiver)
 ]
 
 { #category : #'as yet unclassified' }
