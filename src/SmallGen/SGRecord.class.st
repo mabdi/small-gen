@@ -1,5 +1,5 @@
 Class {
-	#name : #SGCallRecord,
+	#name : #SGRecord,
 	#superclass : #Object,
 	#instVars : [
 		'selector',
@@ -14,17 +14,17 @@ Class {
 }
 
 { #category : #accessing }
-SGCallRecord >> args [
+SGRecord >> args [
 	^ args
 ]
 
 { #category : #accessing }
-SGCallRecord >> args: anObject [
+SGRecord >> args: anObject [
 	args := anObject
 ]
 
 { #category : #copying }
-SGCallRecord >> copy [
+SGRecord >> copy [
 	^ self class new
 		args: (args collect: [ :arg | arg copy ]);
 		selector: selector;
@@ -37,27 +37,27 @@ SGCallRecord >> copy [
 ]
 
 { #category : #accessing }
-SGCallRecord >> coverage [
+SGRecord >> coverage [
 	^ coverage
 ]
 
 { #category : #accessing }
-SGCallRecord >> coverage: anObject [
+SGRecord >> coverage: anObject [
 	coverage := anObject
 ]
 
 { #category : #accessing }
-SGCallRecord >> isVoidReturn [
+SGRecord >> isVoidReturn [
 	^ isVoidReturn
 ]
 
 { #category : #accessing }
-SGCallRecord >> isVoidReturn: anObject [
+SGRecord >> isVoidReturn: anObject [
 	isVoidReturn := anObject
 ]
 
 { #category : #printing }
-SGCallRecord >> printOn: aStream [
+SGRecord >> printOn: aStream [
 	aStream
 		nextPutAll: '[';
 		nextPutAll: selector asString;
@@ -67,41 +67,41 @@ SGCallRecord >> printOn: aStream [
 ]
 
 { #category : #accessing }
-SGCallRecord >> receiverCurrentState [
+SGRecord >> receiverCurrentState [
 	^ receiverCurrentState
 ]
 
 { #category : #accessing }
-SGCallRecord >> receiverCurrentState: anObject [
+SGRecord >> receiverCurrentState: anObject [
 	receiverCurrentState := anObject
 ]
 
 { #category : #accessing }
-SGCallRecord >> receiverLastState [
+SGRecord >> receiverLastState [
 	^ receiverLastState
 ]
 
 { #category : #accessing }
-SGCallRecord >> receiverLastState: anObject [
+SGRecord >> receiverLastState: anObject [
 	receiverLastState := anObject
 ]
 
 { #category : #accessing }
-SGCallRecord >> returnValue [
+SGRecord >> returnValue [
 	^ returnValue
 ]
 
 { #category : #accessing }
-SGCallRecord >> returnValue: anObject [
+SGRecord >> returnValue: anObject [
 	returnValue := anObject
 ]
 
 { #category : #accessing }
-SGCallRecord >> selector [
+SGRecord >> selector [
 	^ selector
 ]
 
 { #category : #accessing }
-SGCallRecord >> selector: anObject [
+SGRecord >> selector: anObject [
 	selector := anObject
 ]

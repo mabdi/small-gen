@@ -1,5 +1,5 @@
 Class {
-	#name : #SGInputGenerator,
+	#name : #SGMethodSynthesizer,
 	#superclass : #Object,
 	#instVars : [
 		'config',
@@ -12,12 +12,12 @@ Class {
 }
 
 { #category : #'as yet unclassified' }
-SGInputGenerator class >> initWith: config [
+SGMethodSynthesizer class >> initWith: config [
 	^ self new with: config
 ]
 
 { #category : #adding }
-SGInputGenerator >> addInputsToResult: inputs generatedFrom: anObservation [
+SGMethodSynthesizer >> addInputsToResult: inputs generatedFrom: anObservation [
 	| list |
 	list := generatedInputs
 		at: anObservation theClass
@@ -26,17 +26,17 @@ SGInputGenerator >> addInputsToResult: inputs generatedFrom: anObservation [
 ]
 
 { #category : #'as yet unclassified' }
-SGInputGenerator >> genArgNodesFrom: args [
+SGMethodSynthesizer >> genArgNodesFrom: args [
 	^ args collect: [ :arg | arg genNodeBy: self ]
 ]
 
 { #category : #'as yet unclassified' }
-SGInputGenerator >> genAssgnmentFor: aNode to: aName [
+SGMethodSynthesizer >> genAssgnmentFor: aNode to: aName [
 	^ RBAssignmentNode  variable: (RBVariableNode named: aName) value: aNode	
 ]
 
 { #category : #'as yet unclassified' }
-SGInputGenerator >> genCall: selector on: receiver WithArgs: args [
+SGMethodSynthesizer >> genCall: selector on: receiver WithArgs: args [
 	| argNodes |
 	argNodes := self genArgNodesFrom: args.
 	^ RBMessageNode
@@ -46,23 +46,23 @@ SGInputGenerator >> genCall: selector on: receiver WithArgs: args [
 ]
 
 { #category : #'as yet unclassified' }
-SGInputGenerator >> genCallNew: aClass [
+SGMethodSynthesizer >> genCallNew: aClass [
 	^ RBMessageNode receiver: (RBVariableNode named: aClass name) selector: 'new'
 ]
 
 { #category : #'as yet unclassified' }
-SGInputGenerator >> genClassNameNodeFrom: arg [
+SGMethodSynthesizer >> genClassNameNodeFrom: arg [
 	^ RBVariableNode named: arg theValue name
 ]
 
 { #category : #'as yet unclassified' }
-SGInputGenerator >> genLiteralArgNodeFrom: arg [
+SGMethodSynthesizer >> genLiteralArgNodeFrom: arg [
 	^ RBLiteralNode 
 		value: arg theValue
 ]
 
 { #category : #'as yet unclassified' }
-SGInputGenerator >> genRefToNewObject: theClass name: aName [
+SGMethodSynthesizer >> genRefToNewObject: theClass name: aName [
 	| newCall |
 	newCall := self genCallNew: theClass.
 	^ self
@@ -71,7 +71,7 @@ SGInputGenerator >> genRefToNewObject: theClass name: aName [
 ]
 
 { #category : #'as yet unclassified' }
-SGInputGenerator >> genSTONFromStringNodeFrom: aString name: aName [
+SGMethodSynthesizer >> genSTONFromStringNodeFrom: aString name: aName [
 	^ self
 		genAssgnmentFor:
 			(RBMessageNode
@@ -82,14 +82,14 @@ SGInputGenerator >> genSTONFromStringNodeFrom: aString name: aName [
 ]
 
 { #category : #'as yet unclassified' }
-SGInputGenerator >> genSequenceWith: anArray [
+SGMethodSynthesizer >> genSequenceWith: anArray [
 	| temporaries |
 	temporaries := self genTempVariablesFrom: anArray.
 	^ RBSequenceNode temporaries: temporaries statements: anArray
 ]
 
 { #category : #'as yet unclassified' }
-SGInputGenerator >> genStatementForHistory: aHistory name: aName alreadyGenerated: oldStatements [
+SGMethodSynthesizer >> genStatementForHistory: aHistory name: aName alreadyGenerated: oldStatements [
 	| statements |
 	statements := OrderedCollection new.
 	(oldStatements
@@ -113,7 +113,7 @@ SGInputGenerator >> genStatementForHistory: aHistory name: aName alreadyGenerate
 ]
 
 { #category : #'as yet unclassified' }
-SGInputGenerator >> genStatementForRecord: aRecord receiver: aName alreadyGenerated: oldStatements [
+SGMethodSynthesizer >> genStatementForRecord: aRecord receiver: aName alreadyGenerated: oldStatements [
 	| statements |
 	statements := OrderedCollection new.
 	aRecord args
@@ -132,7 +132,7 @@ SGInputGenerator >> genStatementForRecord: aRecord receiver: aName alreadyGenera
 ]
 
 { #category : #'as yet unclassified' }
-SGInputGenerator >> genStatementsFor: anObservation [
+SGMethodSynthesizer >> genStatementsFor: anObservation [
 	| statements |
 	statements := self
 		genStatementForHistory: anObservation
@@ -142,34 +142,14 @@ SGInputGenerator >> genStatementsFor: anObservation [
 ]
 
 { #category : #'as yet unclassified' }
-SGInputGenerator >> genTempVariablesFrom: anArray [
+SGMethodSynthesizer >> genTempVariablesFrom: anArray [
 	^ (anArray
 		select: #isAssignment
 		thenCollect: [ :anAssignment | RBTemporaryNode named: anAssignment variable name ]) 
 ]
 
 { #category : #'as yet unclassified' }
-SGInputGenerator >> genTestMethodWith: aSequenceNode [
-	^ RBMethodNode selector: self genATestMethodName body: aSequenceNode
-]
-
-{ #category : #'as yet unclassified' }
-SGInputGenerator >> genVariableArgNodeFrom: arg [
-	^ RBVariableNode named: (self nameForVariableByUniqueId: arg theUniqueId)
-]
-
-{ #category : #'as yet unclassified' }
-SGInputGenerator >> generateInputs [
-	observations
-		keysDo: [ :aTarget | 
-			
-			(observations at: aTarget) do: [:anObservation | | inputs |
-			inputs := self genStatementsFor: anObservation.
-			self addInputsToResult: inputs generatedFrom: anObservation ]]
-]
-
-{ #category : #'as yet unclassified' }
-SGInputGenerator >> generateInputsFor: anObservation [
+SGMethodSynthesizer >> genTestMethodForHistory: anObservation [
 	| theMethod theSequence statements |
 	
 	statements := self genStatementForHistory: anObservation name: self nameForVariableObjectUnderTest alreadyGenerated: {}.
@@ -179,7 +159,28 @@ SGInputGenerator >> generateInputsFor: anObservation [
 ]
 
 { #category : #'as yet unclassified' }
-SGInputGenerator >> generateInputsFor: aListOfTargetClass withObservation: aDicOfObservation andCaptureTargets: anArray [
+SGMethodSynthesizer >> genTestMethodWith: aSequenceNode [
+	^ RBMethodNode selector: self genATestMethodName body: aSequenceNode
+]
+
+{ #category : #'as yet unclassified' }
+SGMethodSynthesizer >> genVariableArgNodeFrom: arg [
+	^ RBVariableNode named: (self nameForVariableByUniqueId: arg theUniqueId)
+]
+
+{ #category : #'as yet unclassified' }
+SGMethodSynthesizer >> generateInputs [
+	observations
+		keysDo: [ :aTarget | 
+			(observations at: aTarget)
+				do: [ :anObservation | 
+					| inputs |
+					inputs := self genTestMethodForHistory: anObservation.
+					self addInputsToResult: inputs generatedFrom: anObservation ] ]
+]
+
+{ #category : #'as yet unclassified' }
+SGMethodSynthesizer >> generateInputsFor: aListOfTargetClass withObservation: aDicOfObservation andCaptureTargets: anArray [
 	targetClasses := aListOfTargetClass asSet.
 	observations := aDicOfObservation.
 	captureTargets := anArray.
@@ -189,17 +190,17 @@ SGInputGenerator >> generateInputsFor: aListOfTargetClass withObservation: aDicO
 ]
 
 { #category : #'as yet unclassified' }
-SGInputGenerator >> nameForVariableByUniqueId: aUniqId [
+SGMethodSynthesizer >> nameForVariableByUniqueId: aUniqId [
 	^ 'var_', aUniqId asString
 ]
 
 { #category : #'as yet unclassified' }
-SGInputGenerator >> nameForVariableObjectUnderTest [
+SGMethodSynthesizer >> nameForVariableObjectUnderTest [
 	^ 'object'
 ]
 
 { #category : #'instance creation' }
-SGInputGenerator >> with: aConfig [
+SGMethodSynthesizer >> with: aConfig [
 	self initialize.
 	config := aConfig 
 ]

@@ -102,7 +102,7 @@ SGObserver >> postCall: selector with: args in: aReceiver result: result [
 	popedSelector = selector
 		ifFalse: [ self error: 'You shouldnt be here. something is wrong.' ].
 	thisHistory callStack ifNotEmpty: [ ^ self ].
-	res := SGCallRecord new
+	res := SGRecord new
 		selector: selector;
 		isVoidReturn: result == aReceiver;
 		returnValue: nil;
