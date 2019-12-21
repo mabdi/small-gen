@@ -6,7 +6,8 @@ Class {
 		'observations',
 		'captureTargets',
 		'targetClasses',
-		'generatedInputs'
+		'generatedInputs',
+		'methodNumber'
 	],
 	#category : #'SmallGen-Synthesis'
 }
@@ -23,6 +24,12 @@ SGMethodSynthesizer >> addInputsToResult: inputs generatedFrom: anObservation [
 		at: anObservation theClass
 		ifAbsentPut: OrderedCollection new.
 		list addAll: inputs
+]
+
+{ #category : #'as yet unclassified' }
+SGMethodSynthesizer >> genATestMethodName [
+	methodNumber := methodNumber+ 1.
+	^ 'testMetodNumber' , methodNumber
 ]
 
 { #category : #'as yet unclassified' }
