@@ -63,6 +63,17 @@ SGMethodSynthesizer >> genClassNameNodeFrom: arg [
 ]
 
 { #category : #'as yet unclassified' }
+SGMethodSynthesizer >> genFuelFromStringNodeFrom: aString name: aName [
+	^ self
+		genAssgnmentFor:
+			(RBMessageNode
+				receiver: (RBVariableNode named: #FLMaterializer)
+				selector: #materializeFromByteArray:
+				arguments: { RBMessageNode receiver: (RBLiteralValueNode value: aString) selector: #base64Decoded }) 
+		to: aName
+]
+
+{ #category : #'as yet unclassified' }
 SGMethodSynthesizer >> genLiteralArgNodeFrom: arg [
 	^ RBLiteralNode 
 		value: arg theValue
