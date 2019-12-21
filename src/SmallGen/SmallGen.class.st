@@ -73,13 +73,6 @@ SmallGen class >> example3 [
 		generate
 ]
 
-{ #category : #experiment }
-SmallGen >> evaluateCoverag [
-	coverage := SGMethodCoverage new
-		generateCoverageFor: targets
-		byRunning: generatedInputs
-]
-
 { #category : #action }
 SmallGen >> generate [
 	self stepObservation.
@@ -94,13 +87,6 @@ SmallGen >> generate [
 { #category : #initialization }
 SmallGen >> initialize [ 
 	targets := OrderedCollection new
-]
-
-{ #category : #experiment }
-SmallGen >> minimizeCodeByCoverage [
-	minimizedCode := SGCoverageFilter new
-		minimizerFor: coverage
-		inputs: generatedInputs
 ]
 
 { #category : #accessing }
