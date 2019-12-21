@@ -192,6 +192,7 @@ SGMethodSynthesizer >> generateInputsFor: aListOfTargetClass withObservation: aD
 	observations := aDicOfObservation.
 	captureTargets := anArray.
 	generatedInputs := Dictionary new.
+	methodNumber:= 0.
 	self generateInputs.
 	^ generatedInputs
 ]
