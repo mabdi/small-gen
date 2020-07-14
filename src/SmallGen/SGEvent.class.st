@@ -1,5 +1,5 @@
 Class {
-	#name : #SGRecord,
+	#name : #SGEvent,
 	#superclass : #Object,
 	#instVars : [
 		'selector',
@@ -14,17 +14,17 @@ Class {
 }
 
 { #category : #accessing }
-SGRecord >> args [
+SGEvent >> args [
 	^ args
 ]
 
 { #category : #accessing }
-SGRecord >> args: anObject [
+SGEvent >> args: anObject [
 	args := anObject
 ]
 
 { #category : #copying }
-SGRecord >> copy [
+SGEvent >> copy [
 	^ self class new
 		args: (args collect: [ :arg | arg copy ]);
 		selector: selector;
@@ -37,27 +37,27 @@ SGRecord >> copy [
 ]
 
 { #category : #accessing }
-SGRecord >> coverage [
+SGEvent >> coverage [
 	^ coverage
 ]
 
 { #category : #accessing }
-SGRecord >> coverage: anObject [
+SGEvent >> coverage: anObject [
 	coverage := anObject
 ]
 
 { #category : #accessing }
-SGRecord >> isVoidReturn [
+SGEvent >> isVoidReturn [
 	^ isVoidReturn
 ]
 
 { #category : #accessing }
-SGRecord >> isVoidReturn: anObject [
+SGEvent >> isVoidReturn: anObject [
 	isVoidReturn := anObject
 ]
 
 { #category : #printing }
-SGRecord >> printOn: aStream [
+SGEvent >> printOn: aStream [
 	aStream
 		nextPutAll: '[';
 		nextPutAll: selector asString;
@@ -67,41 +67,41 @@ SGRecord >> printOn: aStream [
 ]
 
 { #category : #accessing }
-SGRecord >> receiverCurrentState [
+SGEvent >> receiverCurrentState [
 	^ receiverCurrentState
 ]
 
 { #category : #accessing }
-SGRecord >> receiverCurrentState: anObject [
+SGEvent >> receiverCurrentState: anObject [
 	receiverCurrentState := anObject
 ]
 
 { #category : #accessing }
-SGRecord >> receiverLastState [
+SGEvent >> receiverLastState [
 	^ receiverLastState
 ]
 
 { #category : #accessing }
-SGRecord >> receiverLastState: anObject [
+SGEvent >> receiverLastState: anObject [
 	receiverLastState := anObject
 ]
 
 { #category : #accessing }
-SGRecord >> returnValue [
+SGEvent >> returnValue [
 	^ returnValue
 ]
 
 { #category : #accessing }
-SGRecord >> returnValue: anObject [
+SGEvent >> returnValue: anObject [
 	returnValue := anObject
 ]
 
 { #category : #accessing }
-SGRecord >> selector [
+SGEvent >> selector [
 	^ selector
 ]
 
 { #category : #accessing }
-SGRecord >> selector: anObject [
+SGEvent >> selector: anObject [
 	selector := anObject
 ]

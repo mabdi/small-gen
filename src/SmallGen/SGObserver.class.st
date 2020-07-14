@@ -66,6 +66,8 @@ SGObserver >> installObservers [
 { #category : #'as yet unclassified' }
 SGObserver >> installObserversFor: aClass [
 	"aClass methods do: [ :aMethod | self installMetaLinkOn: aMethod ]"
+	aClass addInstVarNamed: 'smallgen_state'.
+	aClass compile: 'smallgen_state ^ smallgen_state ifNil: [smallgen_state := OrderedCollection new]'.
 	aClass methods do: [ :aMethod | self installProxyOn: aMethod ]
 ]
 
@@ -102,7 +104,7 @@ SGObserver >> postCall: selector with: args in: aReceiver result: result [
 	popedSelector = selector
 		ifFalse: [ self error: 'You shouldnt be here. something is wrong.' ].
 	thisHistory callStack ifNotEmpty: [ ^ self ].
-	res := SGRecord new
+	res := SGEvent new
 		selector: selector;
 		isVoidReturn: result == aReceiver;
 		returnValue: nil;
@@ -122,7 +124,8 @@ SGObserver >> postCall: selector with: args in: aReceiver result: result [
 { #category : #'as yet unclassified' }
 SGObserver >> preCall: selector with: args in: aReceiver [
 	| thisHistory |
-	thisHistory := self getCallRecordsFor: aReceiver.
+	thisHistory := aReceiver smallgen_state.
+	thisHistory ifNil: [ thisHistory := self getCallRecordsFor: aReceiver ].
 	thisHistory coveredMethods add: selector.
 	thisHistory callStack push: selector.
 	thisHistory lastState: (SGHelpers new serialize: aReceiver)

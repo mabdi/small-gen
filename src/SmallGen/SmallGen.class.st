@@ -83,7 +83,7 @@ SmallGen >> classesToObserve: aClassList [
 { #category : #action }
 SmallGen >> generate [
 	self stepObservation.
-	self halt.
+	
 	self stepFilterRecords.
 	self stepFilterHistories.
 	self stepSynthesis.
