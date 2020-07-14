@@ -1,28 +1,29 @@
 Class {
 	#name : #SGHistory,
-	#superclass : #Object,
+	#superclass : #SGState,
 	#instVars : [
-		'records',
-		'theClass',
-		'theValue',
+		'events',
 		'theUniqueId',
-		'callStack',
-		'primitive',
-		'lastState',
-		'coveredMethods',
-		'inScope'
+		'callStack'
 	],
 	#category : #'SmallGen-Model'
 }
 
+{ #category : #accessing }
+SGHistory class >> tag [
+	^ 'History'
+]
+
 { #category : #'instance creation' }
-SGHistory class >> for: anObject [
-	^ self new for: anObject; yourself 
+SGHistory class >> with: anObject [
+	^ self new
+		initializeWith: anObject;
+		yourself
 ]
 
 { #category : #accessing }
 SGHistory >> append: aRecord [
-	self records add: aRecord
+	self events add: aRecord
 ]
 
 { #category : #accessing }
@@ -30,29 +31,34 @@ SGHistory >> callStack [
 	^ callStack
 ]
 
+{ #category : #adding }
+SGHistory >> enterMethod: selector args: args [
+	| stateBefore |
+	stateBefore := nil.
+	self callStack
+		ifNotEmpty: [ stateBefore := Dictionary new.
+			stateBefore at: #args put: (args collect: #smallgen_state) ].
+	self callStack push: selector.
+	^ stateBefore
+]
+
 { #category : #accessing }
-SGHistory >> copy [
-	| inst |
-	inst := self class new
-		records: (records collect: [ :r | r copy ]);
-		theClass: theClass;
-		theUniqueId: theUniqueId;
-		primitive: primitive;
-		theValue: theValue;
-		inScope: inScope;
-		yourself.
-	^ inst
+SGHistory >> events [
+	^ events
 ]
 
-{ #category : #initialization }
-SGHistory >> coveredMethods [
-	^ coveredMethods
-]
-
-{ #category : #'instance creation' }
-SGHistory >> for: anObject [
-	self initialize.
-	self setTheValue: anObject
+{ #category : #adding }
+SGHistory >> exitMethod: selector on: aReceiver args: args result: aResult preCallData: preCallData [
+	| res popedSelector |
+	popedSelector := self callStack pop.
+	popedSelector = selector
+		ifFalse: [ self error: 'You shouldnt be here. something is wrong.' ].
+	self callStack ifNotEmpty: [ ^ nil ].
+	res := SGEvent new
+		selector: selector;
+		args: (preCallData at: #args).
+	self append: res.
+	
 ]
 
 { #category : #'as yet unclassified' }
@@ -60,53 +66,23 @@ SGHistory >> genNodeBy: aGenerator [
 	^ aGenerator genVariableArgNodeFrom: self
 ]
 
-{ #category : #'as yet unclassified' }
-SGHistory >> genNotInScopeNodeBy: aGenerator name: aName [
-	^ aGenerator genSTONFromStringNodeFrom: self theValue name: aName
-]
-
-{ #category : #accessing }
-SGHistory >> inScope [
-	^ inScope
-]
-
-{ #category : #accessing }
-SGHistory >> inScope: anObject [
-	inScope := anObject
-]
-
 { #category : #initialization }
 SGHistory >> initialize [
-	records := OrderedCollection new.
+	events := OrderedCollection new.
 	callStack := Stack new.
-	coveredMethods:=Set new.
-	primitive := false
+	theUniqueId := UUID new asString36
 ]
 
-{ #category : #accessing }
-SGHistory >> lastState [
-	lastState ifNil: [ ^ self computeLastState ].
-	^ lastState
-]
-
-{ #category : #accessing }
-SGHistory >> lastState: aString [
-	lastState:=aString
-]
-
-{ #category : #accessing }
-SGHistory >> primitive [
-	^ primitive
-]
-
-{ #category : #accessing }
-SGHistory >> primitive: aBoolean [
-	primitive:= aBoolean 
+{ #category : #'instance creation' }
+SGHistory >> initializeWith: anObject [
+	self initialize.
+	self theValue: anObject.
+	
 ]
 
 { #category : #printing }
 SGHistory >> printOn: aStream [
-	records isEmpty
+	events isEmpty
 		ifTrue: [ aStream
 				nextPutAll: '(';
 				nextPutAll: self theClass asString;
@@ -117,35 +93,8 @@ SGHistory >> printOn: aStream [
 				nextPutAll: '(';
 				nextPutAll: self theClass asString;
 				nextPutAll: ':> ';
-				nextPutAll: ('' join: (records collect: #asString));
+				nextPutAll: ('' join: (events collect: #asString));
 				nextPutAll: ')' ]
-]
-
-{ #category : #accessing }
-SGHistory >> records [
-	^ records
-]
-
-{ #category : #accessing }
-SGHistory >> records: recs [
-	records := recs
-]
-
-{ #category : #accessing }
-SGHistory >> setTheValue: anObject [
-	theUniqueId := anObject basicIdentityHash.
-	self theClass: anObject class.
-	theValue := SGHelpers new serialize: anObject
-]
-
-{ #category : #accessing }
-SGHistory >> theClass [
-	^ theClass
-]
-
-{ #category : #accessing }
-SGHistory >> theClass: anObject [
-	theClass := anObject
 ]
 
 { #category : #accessing }
@@ -156,14 +105,4 @@ SGHistory >> theUniqueId [
 { #category : #accessing }
 SGHistory >> theUniqueId: anId [
 	theUniqueId:=anId
-]
-
-{ #category : #accessing }
-SGHistory >> theValue [
-	^ theValue
-]
-
-{ #category : #accessing }
-SGHistory >> theValue: anObject [
-	theValue := anObject 
 ]

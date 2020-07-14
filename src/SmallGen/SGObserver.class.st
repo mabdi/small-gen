@@ -6,7 +6,6 @@ Class {
 		'sampleCode',
 		'captureTargets',
 		'observationTargets',
-		'allObjects',
 		'coverage',
 		'observations'
 	],
@@ -25,37 +24,18 @@ SGObserver >> generateObservationFor: aListOfClasses targetsCapture: aListOfClas
 	captureTargets := aListOfClassesCapture asSet.
 	observationTargets := aListOfClasses asSet.
 	observations := Dictionary new.
-	allObjects := Dictionary new.
 	self observe.
 	result := Dictionary new.
 	(observations
-		do: [ :val | (result at: val theClass ifAbsentPut: OrderedCollection new) add: val ])
+		do:
+			[ :val | (result at: val theClass ifAbsentPut: OrderedCollection new) add: val ])
 		asDictionary.
 	^ result
 ]
 
 { #category : #'as yet unclassified' }
-SGObserver >> getCallRecordsFor: anObject [
-	anObject isLiteral
-		ifTrue: [ ^ SGLiteralHistory for: anObject ].
-	anObject isClass
-		ifTrue: [ ^ SGClassHistory for: anObject ].
-	^ allObjects
-		at: anObject
-		ifAbsentPut:
-			((SGHistory for: anObject)
-				inScope: (self inScope: anObject class);
-				yourself)
-]
-
-{ #category : #'as yet unclassified' }
 SGObserver >> inScope: aClass [
 	^ (observationTargets includes: aClass)
-]
-
-{ #category : #'instance creation' }
-SGObserver >> initialize [ 
-	allObjects := Dictionary new
 ]
 
 { #category : #'as yet unclassified' }
@@ -65,10 +45,18 @@ SGObserver >> installObservers [
 
 { #category : #'as yet unclassified' }
 SGObserver >> installObserversFor: aClass [
-	"aClass methods do: [ :aMethod | self installMetaLinkOn: aMethod ]"
+	aClass methods do: [ :aMethod | self installProxyOn: aMethod ].
 	aClass addInstVarNamed: 'smallgen_state'.
-	aClass compile: 'smallgen_state ^ smallgen_state ifNil: [smallgen_state := OrderedCollection new]'.
-	aClass methods do: [ :aMethod | self installProxyOn: aMethod ]
+	aClass
+		compile:
+			'smallgen_state smallgen_state ifNil: [smallgen_state := SGHistory for: self]. ^ smallgen_state asString'.
+	aClass
+		compile:
+			'smallgen_enterMethod: aSelector args: args smallgen_state ifNil: [smallgen_state := SGHistory for: self]. smallgen_state enterMethod: aSelector args: args'.
+	aClass
+		compile:
+			'smallgen_exitMethod: aSelector args: args result: aResult preCallData: preCallData smallgen_state ifNil: [smallgen_state := SGHistory for: self]. smallgen_state exitMethod: aSelector on: self args: args result: aResult preCallData: preCallData'.
+	
 ]
 
 { #category : #'as yet unclassified' }
@@ -92,48 +80,31 @@ SGObserver >> observe [
 	[ self installObservers.
 	sampleCode value ]
 		ensure: [ self uninstallObservers ].
-	allObjects removeAll.
 	^ observations
 ]
 
 { #category : #'as yet unclassified' }
-SGObserver >> postCall: selector with: args in: aReceiver result: result [
-	| thisHistory popedSelector res |
-	thisHistory := self getCallRecordsFor: aReceiver.
-	popedSelector := thisHistory callStack pop.
-	popedSelector = selector
-		ifFalse: [ self error: 'You shouldnt be here. something is wrong.' ].
-	thisHistory callStack ifNotEmpty: [ ^ self ].
-	res := SGEvent new
-		selector: selector;
-		isVoidReturn: result == aReceiver;
-		returnValue: nil;
-		receiverLastState: thisHistory lastState;
-		receiverCurrentState: (SGHelpers new serialize: aReceiver);
-		args: (args collect: [ :arg | (self getCallRecordsFor: arg) copy ]).
-	thisHistory inScope
-		ifTrue: [ res coverage: thisHistory coveredMethods copy.
-			result == aReceiver
-				ifFalse: [ res returnValue: (SGHistory for: result) ] ].
-	thisHistory append: res.
-	thisHistory coveredMethods removeAll.
-	thisHistory inScope
-		ifTrue: [ self snapShot: thisHistory ]
+SGObserver >> postCall: selector with: args in: aReceiver result: result preCallData: preCallData [
+	| canLog |
+	canLog := aReceiver
+		smallgen_exitMethod: selector
+		args: args
+		result: result
+		preCallData: preCallData.
+	canLog
+		ifFalse: [ ^ self ].
+	self snapShotIfInScope: aReceiver
 ]
 
 { #category : #'as yet unclassified' }
 SGObserver >> preCall: selector with: args in: aReceiver [
-	| thisHistory |
-	thisHistory := aReceiver smallgen_state.
-	thisHistory ifNil: [ thisHistory := self getCallRecordsFor: aReceiver ].
-	thisHistory coveredMethods add: selector.
-	thisHistory callStack push: selector.
-	thisHistory lastState: (SGHelpers new serialize: aReceiver)
+	^ aReceiver smallgen_enterMethod: selector args: args
 ]
 
 { #category : #'as yet unclassified' }
-SGObserver >> snapShot: thisRecord [
-	observations at: thisRecord theUniqueId put: thisRecord copy
+SGObserver >> snapShotIfInScope: aReceiver [ 
+	(self inScope: aReceiver) ifTrue: [ observations at: aReceiver class name put: aReceiver smallgen_state ]
+	
 ]
 
 { #category : #'as yet unclassified' }

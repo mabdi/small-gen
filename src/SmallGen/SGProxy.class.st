@@ -75,10 +75,15 @@ SGProxy >> printOn: aStream [
 SGProxy >> run: aSelector with: anArray in: aReceiver [
 	"Log the fact that the method was called and execute it."
 
-	| result |
-	action preCall: aSelector with: anArray in: aReceiver.
+	| result preCallData |
+	preCallData := action preCall: aSelector with: anArray in: aReceiver.
 	result := aReceiver withArgs: anArray executeMethod: method.
-	action postCall: aSelector with: anArray in: aReceiver result: result.
+	action
+		postCall: aSelector
+		with: anArray
+		in: aReceiver
+		result: result
+		preCallData: preCallData.
 	^ result
 ]
 
