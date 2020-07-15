@@ -14,5 +14,5 @@ Object >> smallgen_exitMethod: aSelector args: args result: aResult preCallData:
 
 { #category : #'*SmallGen' }
 Object >> smallgen_state [
-	^ (SGSkipped with: self) asString
+	^ (SGSkipped with: self) dictionaryRepresentation
 ]

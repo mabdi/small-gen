@@ -4,12 +4,9 @@ Class {
 	#category : #'SmallGen-Model'
 }
 
-{ #category : #accessing }
-SGClassPrimitive class >> tag [
-	^ 'Class'
-]
-
-{ #category : #'as yet unclassified' }
-SGClassPrimitive >> genNodeBy: aGenerator [
-	^ aGenerator genClassNameNodeFrom: self
+{ #category : #converting }
+SGClassPrimitive >> dictionaryRepresentation [
+	^ 
+			{('model' -> self class name).
+			('data' -> self theValue name)} asDictionary
 ]

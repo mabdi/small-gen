@@ -19,18 +19,12 @@ SGObserver class >> initWith: config [
 
 { #category : #'instance creation' }
 SGObserver >> generateObservationFor: aListOfClasses targetsCapture: aListOfClassesCapture byRunning: aSampleCode [
-	| result |
 	sampleCode := aSampleCode.
 	captureTargets := aListOfClassesCapture asSet.
 	observationTargets := aListOfClasses asSet.
 	observations := Dictionary new.
 	self observe.
-	result := Dictionary new.
-	(observations
-		do:
-			[ :val | (result at: val theClass ifAbsentPut: OrderedCollection new) add: val ])
-		asDictionary.
-	^ result
+	^ observations asDictionary
 ]
 
 { #category : #'as yet unclassified' }
@@ -46,17 +40,17 @@ SGObserver >> installObservers [
 { #category : #'as yet unclassified' }
 SGObserver >> installObserversFor: aClass [
 	aClass methods do: [ :aMethod | self installProxyOn: aMethod ].
-	aClass addInstVarNamed: 'smallgen_state'.
+	(aClass hasInstVarNamed: 'smallgen_state')
+		ifFalse: [ aClass addInstVarNamed: 'smallgen_state' ].
 	aClass
 		compile:
-			'smallgen_state smallgen_state ifNil: [smallgen_state := SGHistory for: self]. ^ smallgen_state asString'.
+			'smallgen_state smallgen_state ifNil: [smallgen_state := SGHistory with: self]. ^ smallgen_state dictionaryRepresentation'.
 	aClass
 		compile:
-			'smallgen_enterMethod: aSelector args: args smallgen_state ifNil: [smallgen_state := SGHistory for: self]. smallgen_state enterMethod: aSelector args: args'.
+			'smallgen_enterMethod: aSelector args: args smallgen_state ifNil: [smallgen_state := SGHistory with: self]. ^ smallgen_state enterMethod: aSelector args: args'.
 	aClass
 		compile:
-			'smallgen_exitMethod: aSelector args: args result: aResult preCallData: preCallData smallgen_state ifNil: [smallgen_state := SGHistory for: self]. smallgen_state exitMethod: aSelector on: self args: args result: aResult preCallData: preCallData'.
-	
+			'smallgen_exitMethod: aSelector args: args result: aResult preCallData: preCallData smallgen_state ifNil: [smallgen_state := SGHistory for: self]. ^ smallgen_state exitMethod: aSelector on: self args: args result: aResult preCallData: preCallData'
 ]
 
 { #category : #'as yet unclassified' }
@@ -80,6 +74,7 @@ SGObserver >> observe [
 	[ self installObservers.
 	sampleCode value ]
 		ensure: [ self uninstallObservers ].
+	
 	^ observations
 ]
 
@@ -102,9 +97,14 @@ SGObserver >> preCall: selector with: args in: aReceiver [
 ]
 
 { #category : #'as yet unclassified' }
-SGObserver >> snapShotIfInScope: aReceiver [ 
-	(self inScope: aReceiver) ifTrue: [ observations at: aReceiver class name put: aReceiver smallgen_state ]
-	
+SGObserver >> snapShotIfInScope: aReceiver [
+	| state |
+	(self inScope: aReceiver class)
+		ifFalse: [ ^ self ].
+	state := aReceiver smallgen_state.
+	(observations at: aReceiver class name ifAbsentPut: Dictionary new)
+		at: (state at: #uuid)
+		put: state
 ]
 
 { #category : #'as yet unclassified' }

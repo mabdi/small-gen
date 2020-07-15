@@ -21,7 +21,7 @@ SGMethodSynthesizer class >> initWith: config [
 SGMethodSynthesizer >> addInputsToResult: inputs generatedFrom: anObservation [
 	| list |
 	list := generatedInputs
-		at: anObservation theClass
+		at: (anObservation at: #type)
 		ifAbsentPut: OrderedCollection new.
 		list addAll: inputs
 ]
@@ -34,7 +34,7 @@ SGMethodSynthesizer >> genATestMethodName [
 
 { #category : #'as yet unclassified' }
 SGMethodSynthesizer >> genArgNodesFrom: args [
-	^ args collect: [ :arg | arg genNodeBy: self ]
+	^ args collect: [ :arg | self genNodeFor: arg ]
 ]
 
 { #category : #'as yet unclassified' }
@@ -53,8 +53,8 @@ SGMethodSynthesizer >> genCall: selector on: receiver WithArgs: args [
 ]
 
 { #category : #'as yet unclassified' }
-SGMethodSynthesizer >> genCallNew: aClass [
-	^ RBMessageNode receiver: (RBVariableNode named: aClass name) selector: 'new'
+SGMethodSynthesizer >> genCallNew: aClassName [
+	^ RBMessageNode receiver: (RBVariableNode named: aClassName) selector: 'new'
 ]
 
 { #category : #'as yet unclassified' }
@@ -76,7 +76,17 @@ SGMethodSynthesizer >> genFuelFromStringNodeFrom: aString name: aName [
 { #category : #'as yet unclassified' }
 SGMethodSynthesizer >> genLiteralArgNodeFrom: arg [
 	^ RBLiteralNode 
-		value: arg theValue
+		value: (arg at: #data)
+]
+
+{ #category : #'as yet unclassified' }
+SGMethodSynthesizer >> genNodeFor: observation [
+	| b |
+	b:= {(#SGHistory -> [ :o | self genVariableArgNodeFrom: o ]).
+	(#SGPrimitive -> [ :o | self genLiteralArgNodeFrom: o ]).
+	(#SGClassPrimitive -> [ :o | self genClassNameNodeFrom: o ])}
+		asDictionary at: (observation at: #model).
+	^ b value: observation 
 ]
 
 { #category : #'as yet unclassified' }
@@ -107,35 +117,13 @@ SGMethodSynthesizer >> genSequenceWith: anArray [
 ]
 
 { #category : #'as yet unclassified' }
-SGMethodSynthesizer >> genStatementForHistory: aHistory name: aName alreadyGenerated: oldStatements [
+SGMethodSynthesizer >> genStatementForEvent: observation receiver: aName alreadyGenerated: oldStatements [
 	| statements |
+	self assert: (observation at: #model) = #SGEvent.
 	statements := OrderedCollection new.
-	(oldStatements
-		anySatisfy: [ :item | item isAssignment and: [ item variable name = aName ] ])
-		ifTrue: [ ^ statements ].
-	statements
-		add: (self genRefToNewObject: aHistory theClass name: aName).
-	"if class not in capture list:"
-	aHistory inScope
-		ifFalse: [ statements addAll: (aHistory genNotInScopeNodeBy: self name: aName) ].
-	aHistory records
-		do: [ :rec | 
-			statements
-				addAll:
-					(self
-						genStatementForRecord: rec
-						receiver: aName
-						alreadyGenerated: statements copy) ].
-	^ statements
-]
-
-{ #category : #'as yet unclassified' }
-SGMethodSynthesizer >> genStatementForRecord: aRecord receiver: aName alreadyGenerated: oldStatements [
-	| statements |
-	statements := OrderedCollection new.
-	aRecord args
+	(observation at: #args_before)
 		do: [ :anArg | 
-			anArg primitive
+			((anArg at: #model) = #SGPrimitive) 
 				ifFalse: [ statements
 						addAll:
 							(self
@@ -144,7 +132,34 @@ SGMethodSynthesizer >> genStatementForRecord: aRecord receiver: aName alreadyGen
 								alreadyGenerated: oldStatements , statements) ] ].
 	statements
 		add:
-			(self genCall: aRecord selector on: aName WithArgs: aRecord args).
+			(self
+				genCall: (observation at: #selector)
+				on: aName
+				WithArgs: (observation at: #args_before)).
+	^ statements
+]
+
+{ #category : #'as yet unclassified' }
+SGMethodSynthesizer >> genStatementForHistory: observation name: aName alreadyGenerated: oldStatements [
+	| statements |
+	self assert: (observation at: #model) = #SGHistory.
+	statements := OrderedCollection new.
+	(oldStatements
+		anySatisfy: [ :item | item isAssignment and: [ item variable name = aName ] ])
+		ifTrue: [ ^ statements ].
+	statements
+		add: (self genRefToNewObject: (observation at: #type) name: aName).
+	"if class not in capture list:"
+	"aHistory inScope
+		ifFalse: [ statements addAll: (aHistory genNotInScopeNodeBy: self name: aName) ]."
+	(observation at: #data)
+		do: [ :rec | 
+			statements
+				addAll:
+					(self
+						genStatementForEvent: rec
+						receiver: aName
+						alreadyGenerated: statements copy) ].
 	^ statements
 ]
 
@@ -169,7 +184,10 @@ SGMethodSynthesizer >> genTempVariablesFrom: anArray [
 SGMethodSynthesizer >> genTestMethodForHistory: anObservation [
 	| theMethod theSequence statements |
 	
-	statements := self genStatementForHistory: anObservation name: self nameForVariableObjectUnderTest alreadyGenerated: {}.
+	statements := self
+		genStatementForHistory: anObservation
+		name: self nameForVariableObjectUnderTest
+		alreadyGenerated: {}.
 	theSequence := self genSequenceWith: statements.
 	theMethod := self genTestMethodWith: theSequence.
 	^ theMethod
@@ -192,7 +210,8 @@ SGMethodSynthesizer >> generateInputs [
 			(observations at: aTarget)
 				do: [ :anObservation | 
 					| inputs |
-					inputs := self genTestMethodForHistory: anObservation.
+					
+					inputs := self genTestMethodForHistory: anObservation value.
 					self addInputsToResult: inputs generatedFrom: anObservation ] ]
 ]
 

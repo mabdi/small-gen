@@ -10,18 +10,6 @@ Class {
 }
 
 { #category : #accessing }
-SGHistory class >> tag [
-	^ 'History'
-]
-
-{ #category : #'instance creation' }
-SGHistory class >> with: anObject [
-	^ self new
-		initializeWith: anObject;
-		yourself
-]
-
-{ #category : #accessing }
 SGHistory >> append: aRecord [
 	self events add: aRecord
 ]
@@ -31,12 +19,21 @@ SGHistory >> callStack [
 	^ callStack
 ]
 
+{ #category : #converting }
+SGHistory >> dictionaryRepresentation [
+	^ 
+			{('model' -> self class name).
+			('data' -> (self events collect: #dictionaryRepresentation) asArray).
+			('uuid' -> self theUniqueId).
+			('type' -> self theValue class name)} asDictionary
+]
+
 { #category : #adding }
 SGHistory >> enterMethod: selector args: args [
 	| stateBefore |
 	stateBefore := nil.
 	self callStack
-		ifNotEmpty: [ stateBefore := Dictionary new.
+		ifEmpty: [ stateBefore := Dictionary new.
 			stateBefore at: #args put: (args collect: #smallgen_state) ].
 	self callStack push: selector.
 	^ stateBefore
@@ -53,17 +50,12 @@ SGHistory >> exitMethod: selector on: aReceiver args: args result: aResult preCa
 	popedSelector := self callStack pop.
 	popedSelector = selector
 		ifFalse: [ self error: 'You shouldnt be here. something is wrong.' ].
-	self callStack ifNotEmpty: [ ^ nil ].
+	self callStack ifNotEmpty: [ ^ false ].
 	res := SGEvent new
 		selector: selector;
-		args: (preCallData at: #args).
+		argsBefore: (preCallData at: #args).
 	self append: res.
-	
-]
-
-{ #category : #'as yet unclassified' }
-SGHistory >> genNodeBy: aGenerator [
-	^ aGenerator genVariableArgNodeFrom: self
+	^ true
 ]
 
 { #category : #initialization }
@@ -78,23 +70,6 @@ SGHistory >> initializeWith: anObject [
 	self initialize.
 	self theValue: anObject.
 	
-]
-
-{ #category : #printing }
-SGHistory >> printOn: aStream [
-	events isEmpty
-		ifTrue: [ aStream
-				nextPutAll: '(';
-				nextPutAll: self theClass asString;
-				nextPutAll: ': ';
-				nextPutAll: self theValue asString;
-				nextPutAll: ')' ]
-		ifFalse: [ aStream
-				nextPutAll: '(';
-				nextPutAll: self theClass asString;
-				nextPutAll: ':> ';
-				nextPutAll: ('' join: (events collect: #asString));
-				nextPutAll: ')' ]
 ]
 
 { #category : #accessing }

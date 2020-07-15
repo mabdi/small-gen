@@ -7,9 +7,21 @@ Class {
 	#category : #'SmallGen-Model'
 }
 
-{ #category : #accessing }
-SGState class >> tag [
-	self subclassResponsibility 
+{ #category : #'instance creation' }
+SGState class >> with: anObject [
+	^ self new
+		initializeWith: anObject;
+		yourself
+]
+
+{ #category : #converting }
+SGState >> dictionaryRepresentation [
+	^ self subclassResponsibility 
+]
+
+{ #category : #initialization }
+SGState >> initializeWith: anObject [
+	self theValue: anObject 
 ]
 
 { #category : #accessing }

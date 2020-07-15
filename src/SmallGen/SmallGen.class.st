@@ -83,7 +83,6 @@ SmallGen >> classesToObserve: aClassList [
 { #category : #action }
 SmallGen >> generate [
 	self stepObservation.
-	
 	self stepFilterRecords.
 	self stepFilterHistories.
 	self stepSynthesis.
@@ -97,14 +96,14 @@ SmallGen >> sampleCode: aCode [
 
 { #category : #steps }
 SmallGen >> stepFilterHistories [
-	observations := SGHistoryFilter new 
-		minimizerFor: observations
+	self flag: #todo
+	"observations := SGHistoryFilter new minimizerFor: observations"
 ]
 
 { #category : #steps }
 SmallGen >> stepFilterRecords [
-	observations := SGRecordFilter new
-		minimizerFor: observations
+	self flag: #todo.
+	"observations := SGRecordFilter new minimizerFor: observations"
 ]
 
 { #category : #steps }

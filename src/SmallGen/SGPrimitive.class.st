@@ -4,20 +4,10 @@ Class {
 	#category : #'SmallGen-Model'
 }
 
-{ #category : #accessing }
-SGPrimitive class >> tag [
-	^ 'Primitive'
-]
-
-{ #category : #'instance creation' }
-SGPrimitive class >> with: aValue [
-	^ self
-		new
-		theValue: aValue;
-		yourself
-]
-
-{ #category : #'as yet unclassified' }
-SGPrimitive >> genNodeBy: aGenerator [
-	^ aGenerator genLiteralArgNodeFrom: self
+{ #category : #converting }
+SGPrimitive >> dictionaryRepresentation [
+	^ 
+			{('model' -> self class name).
+			('data' -> self theValue).
+			('type' -> self theValue class name)} asDictionary
 ]

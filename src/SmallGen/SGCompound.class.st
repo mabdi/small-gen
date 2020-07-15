@@ -4,7 +4,10 @@ Class {
 	#category : #'SmallGen-Model'
 }
 
-{ #category : #accessing }
-SGCompound class >> tag [
-	^ 'Compound'
+{ #category : #converting }
+SGCompound >> dictionaryRepresentation [
+	^ 
+			{('model' -> self class name).
+			('data' -> (self theValue collect: #dictionaryRepresentation)).
+			('type' -> self theValue class name)} asDictionary
 ]

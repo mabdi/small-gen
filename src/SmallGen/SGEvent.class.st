@@ -19,18 +19,11 @@ SGEvent >> argsBefore: anObject [
 ]
 
 { #category : #converting }
-SGEvent >> asString [
-	self flag: #todo
-]
-
-{ #category : #printing }
-SGEvent >> printOn: aStream [
-	aStream
-		nextPutAll: '[';
-		nextPutAll: selector asString;
-		space;
-		nextPutAll: ('' join: (self args collect: #asString));
-		nextPutAll: ']'
+SGEvent >> dictionaryRepresentation [
+	^ 
+			{('model' -> self class name).
+			('args_before' -> self argsBefore asArray).
+			('selector' -> self selector)} asDictionary
 ]
 
 { #category : #accessing }
