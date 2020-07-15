@@ -34,13 +34,13 @@ SGObserver >> inScope: aClass [
 
 { #category : #'as yet unclassified' }
 SGObserver >> installObservers [
-	captureTargets  do: [ :aClass | self installObserversFor: aClass ]
+	(captureTargets asOrderedCollection sort: [ :a :b  | a allSuperclasses includes: b ]) do: [ :aClass | self installObserversFor: aClass ]
 ]
 
 { #category : #'as yet unclassified' }
 SGObserver >> installObserversFor: aClass [
 	aClass methods do: [ :aMethod | self installProxyOn: aMethod ].
-	(aClass hasInstVarNamed: 'smallgen_state')
+	(aClass allInstVarNames includes: 'smallgen_state')
 		ifFalse: [ aClass addInstVarNamed: 'smallgen_state' ].
 	aClass
 		compile:

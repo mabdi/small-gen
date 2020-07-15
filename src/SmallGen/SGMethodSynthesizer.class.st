@@ -59,7 +59,7 @@ SGMethodSynthesizer >> genCallNew: aClassName [
 
 { #category : #'as yet unclassified' }
 SGMethodSynthesizer >> genClassNameNodeFrom: arg [
-	^ RBVariableNode named: arg theValue name
+	^ RBVariableNode named: (arg at: #data)
 ]
 
 { #category : #'as yet unclassified' }
@@ -84,6 +84,9 @@ SGMethodSynthesizer >> genNodeFor: observation [
 	| b |
 	b:= {(#SGHistory -> [ :o | self genVariableArgNodeFrom: o ]).
 	(#SGPrimitive -> [ :o | self genLiteralArgNodeFrom: o ]).
+	(#SGCompoundDictionary -> [ :o | self genVariableArgNodeFrom: o ]).
+	(#SGCompound -> [ :o | self genVariableArgNodeFrom: o ]).
+	(#SGSkipped -> [:o | self genSkippedNodeFrom: o]).
 	(#SGClassPrimitive -> [ :o | self genClassNameNodeFrom: o ])}
 		asDictionary at: (observation at: #model).
 	^ b value: observation 
@@ -117,18 +120,92 @@ SGMethodSynthesizer >> genSequenceWith: anArray [
 ]
 
 { #category : #'as yet unclassified' }
+SGMethodSynthesizer >> genSkippedNodeFrom: observation [
+	^ self genCallNew: (observation at: #type)
+]
+
+{ #category : #'as yet unclassified' }
+SGMethodSynthesizer >> genStatementForCompound: observation name: aName alreadyGenerated: oldStatements [
+	| statements b |
+	
+	statements := OrderedCollection new.
+	"build non primitive items"
+	(observation at: #data)
+		do: [ :anArg | 
+			(anArg at: #model) = #SGHistory
+				ifTrue: [ statements
+						addAll:
+							(self
+								genStatementForHistory: anArg
+								name: (self nameForVariableByUniqueId: (anArg at: #uuid))
+								alreadyGenerated: oldStatements , statements) ].
+			(anArg at: #model) = #SGCompound
+				ifTrue: [ statements
+						addAll:
+							(self
+								genStatementForCompound: anArg
+								name: (self nameForVariableByUniqueId: (anArg at: #uuid))
+								alreadyGenerated: oldStatements , statements) ] ].
+	"build an  Ordered collection"
+	statements
+		add:
+			(self
+				genAssgnmentFor: (self genCallNew: (observation at: #type))
+				to: aName).
+	b := {(#OrderedCollection
+		-> [ :x | 
+			self
+				genStatementForOrderedCollection: observation
+				name: aName
+				alreadyGenerated: oldStatements ]).
+	(#Set -> [ :x | self genStatementForSet: observation name: aName
+				alreadyGenerated: oldStatements ]).
+	(#Dictionary -> [ :x | self genStatementForDictionary: observation name: aName
+				alreadyGenerated: oldStatements ])}
+		asDictionary at: (observation at: #type).
+	statements addAll: (b value: observation).
+	^ statements
+]
+
+{ #category : #'as yet unclassified' }
+SGMethodSynthesizer >> genStatementForDictionary: observation name: aName alreadyGenerated: oldStatements [
+	| statements |
+	self assert: (observation at: #type) = #Dictionary.
+	statements := OrderedCollection new.
+	(observation at: #data)
+		associationsDo: [ :anArg | 
+			statements
+				add:
+					(self
+						genCall: #add:put:
+						on: aName
+						WithArgs:
+							{anArg key smallgen_state.
+							anArg value}) ].
+	^ statements
+]
+
+{ #category : #'as yet unclassified' }
 SGMethodSynthesizer >> genStatementForEvent: observation receiver: aName alreadyGenerated: oldStatements [
 	| statements |
 	self assert: (observation at: #model) = #SGEvent.
 	statements := OrderedCollection new.
 	(observation at: #args_before)
 		do: [ :anArg | 
-			((anArg at: #model) = #SGPrimitive) 
-				ifFalse: [ statements
+			((anArg at: #model) = #SGHistory) 
+				ifTrue: [ statements
 						addAll:
 							(self
 								genStatementForHistory: anArg
-								name: (self nameForVariableByUniqueId: anArg theUniqueId)
+								name: (self nameForVariableByUniqueId: (anArg at: #uuid))
+								alreadyGenerated: oldStatements , statements) ].
+							
+		((anArg at: #model) = #SGCompound) 
+				ifTrue: [ statements
+						addAll:
+							(self
+								genStatementForCompound: anArg
+								name: (self nameForVariableByUniqueId: (anArg at: #uuid))
 								alreadyGenerated: oldStatements , statements) ] ].
 	statements
 		add:
@@ -160,6 +237,28 @@ SGMethodSynthesizer >> genStatementForHistory: observation name: aName alreadyGe
 						genStatementForEvent: rec
 						receiver: aName
 						alreadyGenerated: statements copy) ].
+	^ statements
+]
+
+{ #category : #'as yet unclassified' }
+SGMethodSynthesizer >> genStatementForOrderedCollection: observation name: aName alreadyGenerated: oldStatements [
+	| statements  |
+	self assert: (observation at: #type) = #OrderedCollection.
+	statements := OrderedCollection new.
+	(observation at: #data)
+		do:
+			[ :anArg | statements add: (self genCall: #add: on: aName WithArgs: {anArg}) ].
+	^ statements
+]
+
+{ #category : #'as yet unclassified' }
+SGMethodSynthesizer >> genStatementForSet: observation name: aName alreadyGenerated: oldStatements [
+	| statements |
+	self assert: (observation at: #type) = #Set.
+	statements := OrderedCollection new.
+	(observation at: #data)
+		do:
+			[ :anArg | statements add: (self genCall: #add: on: aName WithArgs: {anArg}) ].
 	^ statements
 ]
 
@@ -200,7 +299,7 @@ SGMethodSynthesizer >> genTestMethodWith: aSequenceNode [
 
 { #category : #'as yet unclassified' }
 SGMethodSynthesizer >> genVariableArgNodeFrom: arg [
-	^ RBVariableNode named: (self nameForVariableByUniqueId: arg theUniqueId)
+	^ RBVariableNode named: (self nameForVariableByUniqueId: (arg at: #uuid))
 ]
 
 { #category : #'as yet unclassified' }

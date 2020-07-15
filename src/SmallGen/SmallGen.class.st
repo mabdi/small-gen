@@ -85,6 +85,7 @@ SmallGen >> generate [
 	self stepObservation.
 	self stepFilterRecords.
 	self stepFilterHistories.
+	self halt.
 	self stepSynthesis.
 	self stepInstallGenerated
 ]
