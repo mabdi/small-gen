@@ -293,8 +293,26 @@ SGMethodSynthesizer >> genTestMethodForHistory: anObservation [
 ]
 
 { #category : #'as yet unclassified' }
+SGMethodSynthesizer >> genTestMethodForHistory: anObservation name: aName [
+	| theMethod theSequence statements |
+	
+	statements := self
+		genStatementForHistory: anObservation
+		name: self nameForVariableObjectUnderTest
+		alreadyGenerated: {}.
+	theSequence := self genSequenceWith: statements.
+	theMethod := self genTestMethodWith: theSequence name: aName.
+	^ theMethod
+]
+
+{ #category : #'as yet unclassified' }
 SGMethodSynthesizer >> genTestMethodWith: aSequenceNode [
 	^ RBMethodNode selector: self genATestMethodName body: aSequenceNode
+]
+
+{ #category : #'as yet unclassified' }
+SGMethodSynthesizer >> genTestMethodWith: aSequenceNode name: aName [
+	^ RBMethodNode selector: aName body: aSequenceNode
 ]
 
 { #category : #'as yet unclassified' }
@@ -304,16 +322,15 @@ SGMethodSynthesizer >> genVariableArgNodeFrom: arg [
 
 { #category : #'as yet unclassified' }
 SGMethodSynthesizer >> generateInputs [
+	| anObservation inputs |
 	observations
 		keysDo: [ :aClass | 
 			(observations at: aClass)
-				keysDo: [ :aMethod | 
-					((observations at: aClass) at: aMethod)
-						do: [ :anObservation | 
-							| inputs |
-							self halt.
-							inputs := self genTestMethodForHistory: anObservation value.
-							self addInputsToResult: inputs generatedFrom: anObservation ] ] ]
+				keysDo: [ :aMethod |
+					anObservation := (observations at: aClass) at: aMethod. 
+					inputs := self genTestMethodForHistory: anObservation value name: aMethod.
+					
+					self addInputsToResult: inputs generatedFrom: anObservation ] ] 
 ]
 
 { #category : #'as yet unclassified' }
