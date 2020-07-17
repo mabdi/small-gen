@@ -5,7 +5,7 @@ Class {
 		'observations',
 		'minimizedList'
 	],
-	#category : #'SmallGen-Filtering'
+	#category : #'SmallGen-Strategy'
 }
 
 { #category : #'as yet unclassified' }

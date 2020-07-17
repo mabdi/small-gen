@@ -34,7 +34,7 @@ Class {
 		'observations',
 		'observationTargets'
 	],
-	#category : #'SmallGen-Filtering'
+	#category : #'SmallGen-Strategy'
 }
 
 { #category : #testing }

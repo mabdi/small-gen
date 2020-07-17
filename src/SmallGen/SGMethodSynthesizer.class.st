@@ -305,13 +305,15 @@ SGMethodSynthesizer >> genVariableArgNodeFrom: arg [
 { #category : #'as yet unclassified' }
 SGMethodSynthesizer >> generateInputs [
 	observations
-		keysDo: [ :aTarget | 
-			(observations at: aTarget)
-				do: [ :anObservation | 
-					| inputs |
-					
-					inputs := self genTestMethodForHistory: anObservation value.
-					self addInputsToResult: inputs generatedFrom: anObservation ] ]
+		keysDo: [ :aClass | 
+			(observations at: aClass)
+				keysDo: [ :aMethod | 
+					((observations at: aClass) at: aMethod)
+						do: [ :anObservation | 
+							| inputs |
+							self halt.
+							inputs := self genTestMethodForHistory: anObservation value.
+							self addInputsToResult: inputs generatedFrom: anObservation ] ] ]
 ]
 
 { #category : #'as yet unclassified' }

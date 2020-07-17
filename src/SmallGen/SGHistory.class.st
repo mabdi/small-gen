@@ -29,12 +29,16 @@ SGHistory >> dictionaryRepresentation [
 ]
 
 { #category : #adding }
-SGHistory >> enterMethod: selector args: args [
+SGHistory >> enterMethod: selector on: receiver args: args [
 	| stateBefore |
 	stateBefore := nil.
 	self callStack
 		ifEmpty: [ stateBefore := Dictionary new.
-			stateBefore at: #args put: (args collect: #smallgen_state) ].
+			stateBefore at: #args put: (args collect: #smallgen_state).
+			"stateBefore
+				at: #args_state
+				put: (args collect: #smallgen_state_identity)."
+			stateBefore at: #state put: receiver smallgen_state_identity ].
 	self callStack push: selector.
 	^ stateBefore
 ]
@@ -53,7 +57,11 @@ SGHistory >> exitMethod: selector on: aReceiver args: args result: aResult preCa
 	self callStack ifNotEmpty: [ ^ false ].
 	res := SGEvent new
 		selector: selector;
-		argsBefore: (preCallData at: #args).
+		stateBefore: (preCallData at: #state);
+		stateAfter: aReceiver smallgen_state_identity;
+		argsBefore: (preCallData at: #args);
+		argsAfter: (args collect: #smallgen_state).
+	aResult == aReceiver ifFalse: [ res result: aResult smallgen_state ].
 	self append: res.
 	^ true
 ]
@@ -70,6 +78,14 @@ SGHistory >> initializeWith: anObject [
 	self initialize.
 	self theValue: anObject.
 	
+]
+
+{ #category : #'as yet unclassified' }
+SGHistory >> state_identity [
+	| vars |
+	vars := theValue class allInstVarNames
+		collect: [ :v | v -> (theValue instVarNamed: v) smallgen_state_identity ].
+	^ vars
 ]
 
 { #category : #accessing }

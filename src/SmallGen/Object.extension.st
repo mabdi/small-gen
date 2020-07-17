@@ -16,3 +16,9 @@ Object >> smallgen_exitMethod: aSelector args: args result: aResult preCallData:
 Object >> smallgen_state [
 	^ (SGSkipped with: self) dictionaryRepresentation
 ]
+
+{ #category : #'*SmallGen' }
+Object >> smallgen_state_identity [
+	self flag: #todo. "choose a better name for me"
+	^ self basicIdentityHash
+]

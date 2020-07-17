@@ -24,6 +24,11 @@ SGState >> initializeWith: anObject [
 	self theValue: anObject 
 ]
 
+{ #category : #'as yet unclassified' }
+SGState >> state_identity [
+	^ theValue smallgen_state_identity 
+]
+
 { #category : #accessing }
 SGState >> theValue [
 	^ theValue

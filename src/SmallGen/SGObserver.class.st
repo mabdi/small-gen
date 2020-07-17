@@ -47,10 +47,11 @@ SGObserver >> installObserversFor: aClass [
 			'smallgen_state smallgen_state ifNil: [smallgen_state := SGHistory with: self]. ^ smallgen_state dictionaryRepresentation'.
 	aClass
 		compile:
-			'smallgen_enterMethod: aSelector args: args smallgen_state ifNil: [smallgen_state := SGHistory with: self]. ^ smallgen_state enterMethod: aSelector args: args'.
+			'smallgen_enterMethod: aSelector args: args smallgen_state ifNil: [smallgen_state := SGHistory with: self]. ^ smallgen_state enterMethod: aSelector on: self  args: args'.
 	aClass
 		compile:
-			'smallgen_exitMethod: aSelector args: args result: aResult preCallData: preCallData smallgen_state ifNil: [smallgen_state := SGHistory for: self]. ^ smallgen_state exitMethod: aSelector on: self args: args result: aResult preCallData: preCallData'
+			'smallgen_exitMethod: aSelector args: args result: aResult preCallData: preCallData smallgen_state ifNil: [smallgen_state := SGHistory for: self]. ^ smallgen_state exitMethod: aSelector on: self args: args result: aResult preCallData: preCallData'.
+	aClass compile: 'smallgen_state_identity smallgen_state ifNil: [smallgen_state := SGHistory for: self]. ^ smallgen_state state_identity'
 ]
 
 { #category : #'as yet unclassified' }
