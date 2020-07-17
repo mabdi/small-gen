@@ -83,6 +83,7 @@ SmallGen >> classesToObserve: aClassList [
 { #category : #action }
 SmallGen >> generate [
 	self stepObservation.
+	observations ifEmpty: [ ^ self ].
 	self stepPrepare.
 	self stepSynthesis.
 	self stepInstallGenerated.

@@ -177,7 +177,7 @@ SGMethodSynthesizer >> genStatementForDictionary: observation name: aName alread
 			statements
 				add:
 					(self
-						genCall: #add:put:
+						genCall: #at:put:
 						on: aName
 						WithArgs:
 							{anArg key smallgen_state.
