@@ -116,7 +116,16 @@ SGObserver >> uninstallObservers [
 { #category : #'as yet unclassified' }
 SGObserver >> uninstallObserversFor: aClass [
 	"aClass removeSelector: #smallGenCallRecords:."
-SGProxy cureClass: aClass
+
+	SGProxy cureClass: aClass.
+	(aClass allInstVarNames includes: 'smallgen_state')
+		ifFalse: [ aClass addInstVarNamed: 'smallgen_state' ].
+	aClass removeSelector: #smallgen_state.
+	aClass removeSelector: #smallgen_enterMethod:.
+	aClass removeSelector: #smallgen_exitMethod:.
+	aClass removeSelector: #smallgen_state_identity.
+	(aClass hasInstVarNamed: 'smallgen_state')
+		ifFalse: [ aClass removeInstVarNamed: 'smallgen_state' ]
 ]
 
 { #category : #'instance creation' }
