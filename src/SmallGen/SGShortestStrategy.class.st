@@ -27,7 +27,9 @@ SGShortestStrategy >> chooseShortest [
 
 { #category : #'as yet unclassified' }
 SGShortestStrategy >> cloneDictionary: aDictionary [
-	^ STONJSON fromString: (STONJSON toString: aDictionary)
+	^ STONJSON
+		fromString:
+			(STONJSON toString: aDictionary )
 ]
 
 { #category : #decoration }
@@ -75,7 +77,8 @@ SGShortestStrategy >> minimizeEvent: aEvent [
 	(self
 		isState: (aEvent at: #state_before)
 		equalWith: (aEvent at: #state_after))
-		ifTrue: [ aEvent at: #state_no_change put: true ]
+		ifTrue: [ aEvent at: #state_no_change put: true ].
+	((aEvent at: #selector) = #id) ifTrue: [ self halt ]
 ]
 
 { #category : #decoration }

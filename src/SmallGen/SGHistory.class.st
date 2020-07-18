@@ -14,6 +14,11 @@ SGHistory >> append: aRecord [
 	self events add: aRecord
 ]
 
+{ #category : #adding }
+SGHistory >> argsDiff: argsListBefore to: argsListAfter [
+	^ (argsListAfter allButFirst: argsListBefore size) asArray
+]
+
 { #category : #accessing }
 SGHistory >> callStack [
 	^ callStack
@@ -60,8 +65,9 @@ SGHistory >> exitMethod: selector on: aReceiver args: args result: aResult preCa
 		stateBefore: (preCallData at: #state);
 		stateAfter: aReceiver smallgen_state_identity;
 		argsBefore: (preCallData at: #args);
-		argsAfter: (args collect: #smallgen_state).
-	aResult == aReceiver ifFalse: [ res result: aResult smallgen_state ].
+		argsAfter: (self argsDiff: (preCallData at: #args) to: (args collect: #smallgen_state)).
+	aResult == aReceiver
+		ifFalse: [ res result: aResult smallgen_state ].
 	self append: res.
 	^ true
 ]
