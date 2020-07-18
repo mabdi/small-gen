@@ -190,17 +190,17 @@ SGMethodSynthesizer >> genStatementForEvent: observation receiver: aName already
 	| statements |
 	self assert: (observation at: #model) = #SGEvent.
 	statements := OrderedCollection new.
+	(observation at: #remove ifAbsent: [false]) ifTrue: [^  statements].
 	(observation at: #args_before)
 		do: [ :anArg | 
-			((anArg at: #model) = #SGHistory) 
+			(anArg at: #model) = #SGHistory
 				ifTrue: [ statements
 						addAll:
 							(self
 								genStatementForHistory: anArg
 								name: (self nameForVariableByUniqueId: (anArg at: #uuid))
 								alreadyGenerated: oldStatements , statements) ].
-							
-		((anArg at: #model) = #SGCompound) 
+			(anArg at: #model) = #SGCompound
 				ifTrue: [ statements
 						addAll:
 							(self

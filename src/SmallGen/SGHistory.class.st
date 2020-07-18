@@ -83,8 +83,8 @@ SGHistory >> initializeWith: anObject [
 { #category : #'as yet unclassified' }
 SGHistory >> state_identity [
 	| vars |
-	vars := theValue class allInstVarNames
-		collect: [ :v | v -> (theValue instVarNamed: v) smallgen_state_identity ].
+	vars := (theValue class allInstVarNames
+		collect: [ :v | v -> (theValue instVarNamed: v) smallgen_state_identity ]) asDictionary.
 	^ vars
 ]
 
