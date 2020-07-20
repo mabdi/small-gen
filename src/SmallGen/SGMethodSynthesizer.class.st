@@ -71,8 +71,14 @@ SGMethodSynthesizer >> genAssertionResult: observation receiver: aName alreadyGe
 				add:
 					(self
 						genAssertEqual: (self genCall: #class on: aName WithArgs: {})
-						To: (RBVariableNode named: ((observation at: #result) at: #type))) ]
-		ifFalse: [ self halt ].
+						To: (RBVariableNode named: ((observation at: #result) at: #type))) ].
+	model = #SGHistory
+		ifTrue: [ self halt ].
+	model = #SGSkipped
+		ifTrue: [ self halt ].
+	model = #SGClassPrimitive
+		ifTrue: [ self halt ].
+		model = #SGCompoundDictionary ifTrue: [ self halt ].
 	^ statements
 ]
 
