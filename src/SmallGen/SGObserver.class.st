@@ -39,6 +39,7 @@ SGObserver >> installObservers [
 
 { #category : #'as yet unclassified' }
 SGObserver >> installObserversFor: aClass [
+
 	aClass methods do: [ :aMethod | self installProxyOn: aMethod ].
 	(aClass allInstVarNames includes: 'smallgen_state')
 		ifFalse: [ aClass addInstVarNamed: 'smallgen_state' ].
@@ -51,7 +52,9 @@ SGObserver >> installObserversFor: aClass [
 	aClass
 		compile:
 			'smallgen_exitMethod: aSelector args: args result: aResult preCallData: preCallData smallgen_state ifNil: [smallgen_state := SGHistory for: self]. ^ smallgen_state exitMethod: aSelector on: self args: args result: aResult preCallData: preCallData'.
-	aClass compile: 'smallgen_state_identity smallgen_state ifNil: [smallgen_state := SGHistory for: self]. ^ smallgen_state state_identity'
+	aClass
+		compile:
+			'smallgen_state_identity smallgen_state ifNil: [smallgen_state := SGHistory for: self]. ^ smallgen_state state_identity'
 ]
 
 { #category : #'as yet unclassified' }
@@ -87,6 +90,8 @@ SGObserver >> postCall: selector with: args in: aReceiver result: result preCall
 		args: args
 		result: result
 		preCallData: preCallData.
+	aReceiver class = SAAssertGenerator
+		ifTrue: [ self halt ].
 	canLog
 		ifFalse: [ ^ self ].
 	self snapShotIfInScope: aReceiver
@@ -118,11 +123,9 @@ SGObserver >> uninstallObserversFor: aClass [
 	"aClass removeSelector: #smallGenCallRecords:."
 
 	SGProxy cureClass: aClass.
-	(aClass allInstVarNames includes: 'smallgen_state')
-		ifFalse: [ aClass addInstVarNamed: 'smallgen_state' ].
 	aClass removeSelector: #smallgen_state.
-	aClass removeSelector: #smallgen_enterMethod:.
-	aClass removeSelector: #smallgen_exitMethod:.
+	aClass removeSelector: #smallgen_enterMethod:args:.
+	aClass removeSelector: #smallgen_exitMethod:args:result:preCallData:.
 	aClass removeSelector: #smallgen_state_identity.
 	(aClass hasInstVarNamed: 'smallgen_state')
 		ifTrue: [ aClass removeInstVarNamed: 'smallgen_state' ]

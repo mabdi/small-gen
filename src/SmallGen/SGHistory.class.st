@@ -67,12 +67,14 @@ SGHistory >> exitMethod: selector on: aReceiver args: args result: aResult preCa
 	popedSelector = selector
 		ifFalse: [ self error: 'You shouldnt be here. something is wrong.' ].
 	self callStack ifNotEmpty: [ ^ false ].
+	aReceiver class = SAAssertGenerator
+		ifTrue: [ self halt ].
 	res := SGEvent new
 		selector: selector;
 		stateBefore: (preCallData at: #state);
 		stateAfter: aReceiver smallgen_state_identity;
 		argsBefore: (preCallData at: #args);
-		argsAfter: (self argsDiff: (preCallData at: #args) to: (args collect: #smallgen_state)).
+		argsAfter: (args collect: #smallgen_state).
 	aResult == aReceiver
 		ifFalse: [ res result: aResult smallgen_state ].
 	self append: res.
