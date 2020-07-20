@@ -73,29 +73,48 @@ SGShortestStrategy >> minimizeCalls [
 
 { #category : #decoration }
 SGShortestStrategy >> minimizeEvent: aEvent [
+	| clone |
+	clone := aEvent copy.
 	(aEvent at: #args_before) do: [ :item | self minimizeHistory: item ].
 	(self
 		isState: (aEvent at: #state_before)
 		equalWith: (aEvent at: #state_after))
 		ifTrue: [ aEvent at: #state_no_change put: true ].
-	((aEvent at: #selector) = #id) ifTrue: [ self halt ]
+	^ clone
+]
+
+{ #category : #decoration }
+SGShortestStrategy >> minimizeEvent: aEvent important: aBoolean [
+	| clone |
+	aBoolean
+		ifFalse: [ (self
+				isState: (aEvent at: #state_before)
+				equalWith: (aEvent at: #state_after))
+				ifTrue: [ ^ nil ] ].
+	clone := aEvent copy.
+	clone at: #args_before put: OrderedCollection new.
+	clone at: #args_after put: OrderedCollection new.
+	clone at: #state_before put: Dictionary new.
+	clone at: #state_after put: Dictionary new.
+	clone at: #result put: Dictionary new.
+	self flag: #todo. "when you want to create mock based and assertions implemetn here."
+	aBoolean
+		ifTrue: [ 'filter args_after and add to clone' ].
+	(aEvent at: #args_before)
+		do: [ :item | (clone at: #args_before) add: (self minimizeHistory: item) ].
+	^ clone
 ]
 
 { #category : #decoration }
 SGShortestStrategy >> minimizeHistory: aHistory [
-	| toRemove |
+	| clone |
+	clone := aHistory copy.
 	(aHistory at: #model) = #SGHistory
-		ifFalse: [ ^ self ].
-	(aHistory at: #data) do: [ :item | self minimizeEvent: item ].
-	toRemove := (aHistory at: #data)
-		select: [ :item | 
-			| state_no_change important |
-			state_no_change := item at: #state_no_change ifAbsent: [ false ].
-			important := item at: #important ifAbsent: [ false ].
-			important not & state_no_change ].
-	toRemove
-		do: [ :item | 
-			item at: #remove put: true ]
+		ifFalse: [ ^ clone ].
+	clone at: #data put: OrderedCollection new.
+	(aHistory at: #data)
+		do: [ :item | (self minimizeEvent: item important: false) ifNotNil: [ :x | (clone at: #data) add: x ] ].
+	^ clone
 ]
 
 { #category : #decoration }
@@ -126,9 +145,14 @@ SGShortestStrategy >> processClass: class method: method [
 { #category : #'as yet unclassified' }
 SGShortestStrategy >> selectFor: method Observation: observation upTo: index [
 	| ob |
-	ob := self cloneDictionary: observation.
-	ob at: #data put: ((ob at: #data) copyFrom: 1 to: index ).
-	((ob at: #data) at: index) at: #important put: true.
+	ob := observation copy.
+	self assert: ({OrderedCollection. Array} includes: (observation at: #data) class).
+	ob at: #data put: OrderedCollection new.
+	(observation at: #data)
+		doWithIndex: [ :item :idx | 
+			idx <= index
+				ifTrue: [ (self minimizeEvent: item important: idx = index)
+						ifNotNil: [ :obj | (ob at: #data) add: obj ] ] ].
 	candidates at: method ifAbsentPut: OrderedCollection new.
 	(candidates at: method) add: ob
 ]

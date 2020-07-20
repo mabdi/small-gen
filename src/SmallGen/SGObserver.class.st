@@ -40,7 +40,6 @@ SGObserver >> installObservers [
 { #category : #'as yet unclassified' }
 SGObserver >> installObserversFor: aClass [
 
-	aClass methods do: [ :aMethod | self installProxyOn: aMethod ].
 	(aClass allInstVarNames includes: 'smallgen_state')
 		ifFalse: [ aClass addInstVarNamed: 'smallgen_state' ].
 	aClass
@@ -51,10 +50,13 @@ SGObserver >> installObserversFor: aClass [
 			'smallgen_enterMethod: aSelector args: args smallgen_state ifNil: [smallgen_state := SGHistory with: self]. ^ smallgen_state enterMethod: aSelector on: self  args: args'.
 	aClass
 		compile:
-			'smallgen_exitMethod: aSelector args: args result: aResult preCallData: preCallData smallgen_state ifNil: [smallgen_state := SGHistory for: self]. ^ smallgen_state exitMethod: aSelector on: self args: args result: aResult preCallData: preCallData'.
+			'smallgen_exitMethod: aSelector args: args result: aResult preCallData: preCallData smallgen_state ifNil: [smallgen_state := SGHistory with: self]. ^ smallgen_state exitMethod: aSelector on: self args: args result: aResult preCallData: preCallData'.
 	aClass
 		compile:
-			'smallgen_state_identity smallgen_state ifNil: [smallgen_state := SGHistory for: self]. ^ smallgen_state state_identity'
+			'smallgen_state_identity smallgen_state ifNil: [smallgen_state := SGHistory with: self]. ^ smallgen_state state_identity'.
+			
+	aClass methods reject: [:aMethod | (aMethod selector beginsWith: 'smallgen')] thenDo: [ :aMethod |  self installProxyOn: aMethod ].
+	
 ]
 
 { #category : #'as yet unclassified' }
@@ -90,8 +92,6 @@ SGObserver >> postCall: selector with: args in: aReceiver result: result preCall
 		args: args
 		result: result
 		preCallData: preCallData.
-	aReceiver class = SAAssertGenerator
-		ifTrue: [ self halt ].
 	canLog
 		ifFalse: [ ^ self ].
 	self snapShotIfInScope: aReceiver
@@ -99,6 +99,9 @@ SGObserver >> postCall: selector with: args in: aReceiver result: result preCall
 
 { #category : #'as yet unclassified' }
 SGObserver >> preCall: selector with: args in: aReceiver [
+
+	aReceiver = SAAssertGenerator
+		ifTrue: [ self halt ].
 	^ aReceiver smallgen_enterMethod: selector args: args
 ]
 
