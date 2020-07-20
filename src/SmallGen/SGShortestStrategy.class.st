@@ -66,28 +66,22 @@ SGShortestStrategy >> cloneHistory: aHistory minimize: doMinimize [
 	| clone |
 	"self halt."
 	clone := aHistory copy.
-	(aHistory at: #model) = #SGPrimitive
-		ifTrue: [ ^ clone ].
-	(aHistory at: #model) = #SGSkipped
+	({#SGClassPrimitive. #SGPrimitive. #SGSkipped} includes: (aHistory at: #model))
 		ifTrue: [ ^ clone ].
 	(aHistory at: #model) = #SGCompound
 		ifTrue: [ clone
 				at: #data
 				put:
 					((aHistory at: #data)
-						collect: [ :item | 
-							(self
-								cloneHistory: item
-								
-								minimize: doMinimize
-								) ifNotNil: [ :x | (clone at: #data) add: x ] ]).
+						collect:
+							[ :item | self cloneHistory: item minimize: doMinimize ]).
 			^ clone ].
 	(aHistory at: #model) = #SGHistory
 		ifTrue: [ clone
 				at: #data
-				put:
+				put: OrderedCollection new.
 					((aHistory at: #data)
-						collect: [ :item | 
+						do: [ :item | 
 							(self
 								cloneEvent: item
 								important: false
