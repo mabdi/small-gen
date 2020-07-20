@@ -33,6 +33,46 @@ SGShortestStrategy >> cloneDictionary: aDictionary [
 ]
 
 { #category : #decoration }
+SGShortestStrategy >> cloneEvent: aEvent important: isImportant minimize: doMinimize [
+	| clone |
+	"self halt."
+	doMinimize & isImportant not
+		ifTrue: [ (self
+				isState: (aEvent at: #state_before)
+				equalWith: (aEvent at: #state_after))
+				ifTrue: [ ^ nil ] ].
+	clone := aEvent copy.
+	clone at: #args_before put: OrderedCollection new.
+	clone at: #args_after put: OrderedCollection new.
+	clone at: #state_before put: Dictionary new.
+	clone at: #state_after put: Dictionary new.
+	clone at: #result put: Dictionary new.
+	self flag: #todo.	"when you want to create mock based and assertions implemetn here."
+	isImportant
+		ifTrue: [ 'filter args_after and add to clone' ].
+	(aEvent at: #args_before)
+		do: [ :item | 
+			(clone at: #args_before)
+				add: (self cloneHistory: item minimize: doMinimize) ].
+	^ clone
+]
+
+{ #category : #decoration }
+SGShortestStrategy >> cloneHistory: aHistory minimize: doMinimize [
+	| clone |
+	"self halt."
+	clone := aHistory copy.
+	(aHistory at: #model) = #SGHistory
+		ifFalse: [ ^ clone ].
+	clone at: #data put: OrderedCollection new.
+	(aHistory at: #data)
+		do: [ :item | 
+			(self cloneEvent: item important: false minimize: doMinimize)
+				ifNotNil: [ :x | (clone at: #data) add: x ] ].
+	^ clone
+]
+
+{ #category : #decoration }
 SGShortestStrategy >> findLenghForEvent: aEvent [
 	^ (aEvent at: #args_before)
 		inject: 0
@@ -65,59 +105,6 @@ SGShortestStrategy >> isState: state1 equalWith: state2 [
 ]
 
 { #category : #decoration }
-SGShortestStrategy >> minimizeCalls [
-	result
-		do: [ :methods | methods do: [ :kvp | self minimizeHistory: kvp value ] ].
-	
-]
-
-{ #category : #decoration }
-SGShortestStrategy >> minimizeEvent: aEvent [
-	| clone |
-	clone := aEvent copy.
-	(aEvent at: #args_before) do: [ :item | self minimizeHistory: item ].
-	(self
-		isState: (aEvent at: #state_before)
-		equalWith: (aEvent at: #state_after))
-		ifTrue: [ aEvent at: #state_no_change put: true ].
-	^ clone
-]
-
-{ #category : #decoration }
-SGShortestStrategy >> minimizeEvent: aEvent important: aBoolean [
-	| clone |
-	aBoolean
-		ifFalse: [ (self
-				isState: (aEvent at: #state_before)
-				equalWith: (aEvent at: #state_after))
-				ifTrue: [ ^ nil ] ].
-	clone := aEvent copy.
-	clone at: #args_before put: OrderedCollection new.
-	clone at: #args_after put: OrderedCollection new.
-	clone at: #state_before put: Dictionary new.
-	clone at: #state_after put: Dictionary new.
-	clone at: #result put: Dictionary new.
-	self flag: #todo. "when you want to create mock based and assertions implemetn here."
-	aBoolean
-		ifTrue: [ 'filter args_after and add to clone' ].
-	(aEvent at: #args_before)
-		do: [ :item | (clone at: #args_before) add: (self minimizeHistory: item) ].
-	^ clone
-]
-
-{ #category : #decoration }
-SGShortestStrategy >> minimizeHistory: aHistory [
-	| clone |
-	clone := aHistory copy.
-	(aHistory at: #model) = #SGHistory
-		ifFalse: [ ^ clone ].
-	clone at: #data put: OrderedCollection new.
-	(aHistory at: #data)
-		do: [ :item | (self minimizeEvent: item important: false) ifNotNil: [ :x | (clone at: #data) add: x ] ].
-	^ clone
-]
-
-{ #category : #decoration }
 SGShortestStrategy >> nameFor: aMethod [
 	^ aMethod asTestSelector
 ]
@@ -126,8 +113,6 @@ SGShortestStrategy >> nameFor: aMethod [
 SGShortestStrategy >> prepare [
 	result := Dictionary new.
 	self findShortestMethods.
-	
-	self minimizeCalls.
 	^ result
 ]
 
@@ -146,12 +131,16 @@ SGShortestStrategy >> processClass: class method: method [
 SGShortestStrategy >> selectFor: method Observation: observation upTo: index [
 	| ob |
 	ob := observation copy.
-	self assert: ({OrderedCollection. Array} includes: (observation at: #data) class).
+	self
+		assert:
+			({OrderedCollection.
+			Array} includes: (observation at: #data) class).
 	ob at: #data put: OrderedCollection new.
 	(observation at: #data)
 		doWithIndex: [ :item :idx | 
 			idx <= index
-				ifTrue: [ (self minimizeEvent: item important: idx = index)
+				ifTrue: [ 
+					(self cloneEvent: item important: idx = index minimize: false)
 						ifNotNil: [ :obj | (ob at: #data) add: obj ] ] ].
 	candidates at: method ifAbsentPut: OrderedCollection new.
 	(candidates at: method) add: ob
