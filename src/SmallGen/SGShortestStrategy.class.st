@@ -118,7 +118,8 @@ SGShortestStrategy >> prepare [
 
 { #category : #decoration }
 SGShortestStrategy >> processClass: class method: method [
-	| obs |obs := (observations at: class name) values.
+	| obs |
+	obs := (observations at: class name ifAbsent: [ ^ self ]) values.
 	obs
 		do: [ :ob | 
 			(ob at: #data)
@@ -139,8 +140,7 @@ SGShortestStrategy >> selectFor: method Observation: observation upTo: index [
 	(observation at: #data)
 		doWithIndex: [ :item :idx | 
 			idx <= index
-				ifTrue: [ 
-					(self cloneEvent: item important: idx = index minimize: false)
+				ifTrue: [ (self cloneEvent: item important: idx = index minimize: true)
 						ifNotNil: [ :obj | (ob at: #data) add: obj ] ] ].
 	candidates at: method ifAbsentPut: OrderedCollection new.
 	(candidates at: method) add: ob
