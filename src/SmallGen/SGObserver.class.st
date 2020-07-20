@@ -125,7 +125,7 @@ SGObserver >> uninstallObserversFor: aClass [
 	aClass removeSelector: #smallgen_exitMethod:.
 	aClass removeSelector: #smallgen_state_identity.
 	(aClass hasInstVarNamed: 'smallgen_state')
-		ifFalse: [ aClass removeInstVarNamed: 'smallgen_state' ]
+		ifTrue: [ aClass removeInstVarNamed: 'smallgen_state' ]
 ]
 
 { #category : #'instance creation' }
