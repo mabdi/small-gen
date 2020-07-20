@@ -43,7 +43,9 @@ SGMethodSynthesizer >> genAssertEqual: expression To: value [
 	^ RBMessageNode
 		receiver: (RBVariableNode named: 'self')
 		selector: #assert:equals:
-		arguments: { expression . (RBLiteralValueNode  value: value) } 
+		arguments:
+			{expression.
+			value}
 ]
 
 { #category : #'as yet unclassified' }
@@ -55,8 +57,22 @@ SGMethodSynthesizer >> genAssertionResult: observation receiver: aName alreadyGe
 		ifAbsent: [ ^ statements ].
 	model = #SGPrimitive
 		ifTrue: [ statements
-				add: (self genAssertEqual: aName To: ((observation at: #result) at: #data)) ].
-	
+				add:
+					(self
+						genAssertEqual: (RBVariableNode named: aName)
+						To: (RBLiteralValueNode value: ((observation at: #result) at: #data))) ].
+	model = #SGCompound
+		ifTrue: [ statements
+				add:
+					(self
+						genAssertEqual: (self genCall: #size on: aName WithArgs: {})
+						To: (RBLiteralValueNode value: ((observation at: #result) at: #data) size)).
+			statements
+				add:
+					(self
+						genAssertEqual: (self genCall: #class on: aName WithArgs: {})
+						To: (RBVariableNode named: ((observation at: #result) at: #type))) ]
+		ifFalse: [ self halt ].
 	^ statements
 ]
 
@@ -64,7 +80,7 @@ SGMethodSynthesizer >> genAssertionResult: observation receiver: aName alreadyGe
 SGMethodSynthesizer >> genAssertionState: observation receiver: aName alreadyGenerated: oldStatements [
 	| statements |
 	statements := OrderedCollection new.
-	(observation at: #state_after) keysAndValuesDo: [ :k :v | statements add:  (self genAssertEqual: (self genCall: k on: aName WithArgs: {  }) To: v) ].
+	(observation at: #state_after) keysAndValuesDo: [ :k :v | statements add:  (self genAssertEqual: (self genCall: k on: aName WithArgs: {  }) To: (RBLiteralValueNode value: v)) ].
 	^ statements
 ]
 
@@ -218,7 +234,7 @@ SGMethodSynthesizer >> genStatementForDictionary: observation name: aName alread
 
 { #category : #'as yet unclassified' }
 SGMethodSynthesizer >> genStatementForEvent: observation receiver: aName alreadyGenerated: oldStatements [
-	| statements result_var_name |
+	| statements result_var_name addAssignment |
 	self assert: (observation at: #model) = #SGEvent.
 	statements := OrderedCollection new.
 	(observation at: #remove ifAbsent: [ false ])
@@ -239,10 +255,9 @@ SGMethodSynthesizer >> genStatementForEvent: observation receiver: aName already
 								genStatementForCompound: anArg
 								name: (self nameForVariableByUniqueId: (anArg at: #uuid))
 								alreadyGenerated: oldStatements , statements) ] ].
-	(observation at: #result)
-		at: #model
-		ifPresent: [ 
-			result_var_name := self nameForVariableSequential.
+	addAssignment := (observation at: #result ifPresent: [:x | x ifNil: [ false ] ifNotNil: [x at: #model ifPresent: [ true ] ifAbsent: [ false ]] ] ifAbsent: [ false]).
+	addAssignment
+		ifTrue: [ result_var_name := self nameForVariableSequential.
 			statements
 				add:
 					(self
@@ -256,9 +271,9 @@ SGMethodSynthesizer >> genStatementForEvent: observation receiver: aName already
 				addAll:
 					(self
 						genAssertionResult: observation
-						receiver: (RBVariableNode named: result_var_name)
+						receiver: result_var_name
 						alreadyGenerated: oldStatements) ]
-		ifAbsent: [ statements
+		ifFalse: [ statements
 				add:
 					(self
 						genCall: (observation at: #selector)
@@ -365,11 +380,14 @@ SGMethodSynthesizer >> generateInputs [
 	observations
 		keysDo: [ :aClass | 
 			(observations at: aClass)
-				keysDo: [ :aMethod |
-					anObservation := (observations at: aClass) at: aMethod. 
-					inputs := self genTestMethodForHistory: anObservation value name: aMethod.
-					
-					self addInputsToResult: inputs generatedFrom: anObservation ] ] 
+				keysDo: [ :aMethod | 
+					anObservation := (observations at: aClass) at: aMethod.
+					self halt.
+					inputs := self
+						genTestMethodForHistory: anObservation value
+						name: aMethod.
+					self addInputsToResult: inputs generatedFrom: anObservation ] ].
+	
 ]
 
 { #category : #'as yet unclassified' }

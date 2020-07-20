@@ -87,7 +87,7 @@ SmallGen >> generate [
 	self stepPrepare.
 	self stepSynthesis.
 	self stepInstallGenerated.
-	self halt
+	SGBuildTestClass new defaultTempPackage asPackage browse.
 ]
 
 { #category : #accessing }

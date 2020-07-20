@@ -3,7 +3,8 @@ Class {
 	#superclass : #SGAbstractStrategy,
 	#instVars : [
 		'result',
-		'candidates'
+		'candidates',
+		'currentSUT'
 	],
 	#category : #'SmallGen-Strategy'
 }
@@ -25,17 +26,9 @@ SGShortestStrategy >> chooseShortest [
 	candidates := dictionary 
 ]
 
-{ #category : #'as yet unclassified' }
-SGShortestStrategy >> cloneDictionary: aDictionary [
-	^ STONJSON
-		fromString:
-			(STONJSON toString: aDictionary )
-]
-
 { #category : #decoration }
 SGShortestStrategy >> cloneEvent: aEvent important: isImportant minimize: doMinimize isInScope: inScope [
 	| clone |
-	"self halt."
 	doMinimize & isImportant not
 		ifTrue: [ (self
 				isState: (aEvent at: #state_before)
@@ -46,17 +39,18 @@ SGShortestStrategy >> cloneEvent: aEvent important: isImportant minimize: doMini
 	clone at: #args_after put: OrderedCollection new.
 	clone at: #state_before put: Dictionary new.
 	clone at: #state_after put: Dictionary new.
-	
 	inScope
 		ifTrue: [ clone
 				at: #state_after
 				put:
 					(self
 						diffState: (aEvent at: #state_before)
-						with: (aEvent at: #state_after)). ].
+						with: (aEvent at: #state_after)) ].
 	clone at: #result put: Dictionary new.
-	(aEvent at: #result) isNotNil & inScope ifTrue: [ clone at: #result
-				put: (self cloneHistory: (aEvent at: #result) minimize: doMinimize)]. 
+	(aEvent at: #result) isNotNil & inScope
+		ifTrue: [ clone
+				at: #result
+				put: (self cloneHistory: (aEvent at: #result) minimize: doMinimize) ].
 	self flag: #todo.	"when you want to create mock based and assertions implemetn here."
 	isImportant
 		ifTrue: [ 'filter args_after and add to clone' ].
@@ -72,14 +66,35 @@ SGShortestStrategy >> cloneHistory: aHistory minimize: doMinimize [
 	| clone |
 	"self halt."
 	clone := aHistory copy.
+	(aHistory at: #model) = #SGPrimitive
+		ifTrue: [ ^ clone ].
+	(aHistory at: #model) = #SGSkipped
+		ifTrue: [ ^ clone ].
+	(aHistory at: #model) = #SGCompound
+		ifTrue: [ clone
+				at: #data
+				put:
+					((aHistory at: #data)
+						collect: [ :item | 
+							(self
+								cloneHistory: item
+								
+								minimize: doMinimize
+								) ifNotNil: [ :x | (clone at: #data) add: x ] ]).
+			^ clone ].
 	(aHistory at: #model) = #SGHistory
-		ifFalse: [ ^ clone ].
-	clone at: #data put: OrderedCollection new.
-	(aHistory at: #data)
-		do: [ :item | 
-			(self cloneEvent: item important: false minimize: doMinimize isInScope: false)
-				ifNotNil: [ :x | (clone at: #data) add: x ] ].
-	^ clone
+		ifTrue: [ clone
+				at: #data
+				put:
+					((aHistory at: #data)
+						collect: [ :item | 
+							(self
+								cloneEvent: item
+								important: false
+								minimize: doMinimize
+								isInScope: false) ifNotNil: [ :x | (clone at: #data) add: x ] ]).
+			^ clone ].
+	self halt
 ]
 
 { #category : #'as yet unclassified' }
@@ -119,6 +134,8 @@ SGShortestStrategy >> findLenghForHistory: aHistory [
 SGShortestStrategy >> findShortestMethods [
 	classesToGenerate
 		do: [ :class | 
+			currentSUT := class.
+			
 			candidates := Dictionary new.
 			class methods
 				do: [ :method | self processClass: class method: method ].
@@ -167,7 +184,11 @@ SGShortestStrategy >> selectFor: method Observation: observation upTo: index [
 	(observation at: #data)
 		doWithIndex: [ :item :idx | 
 			idx <= index
-				ifTrue: [ (self cloneEvent: item important: idx = index minimize: true isInScope: (classesToGenerate includes: (observation at: #type) asClass))
+				ifTrue: [ (self
+						cloneEvent: item
+						important: idx = index
+						minimize: true
+						isInScope: ((observation at: #type)  = currentSUT name))
 						ifNotNil: [ :obj | (ob at: #data) add: obj ] ] ].
 	candidates at: method ifAbsentPut: OrderedCollection new.
 	(candidates at: method) add: ob

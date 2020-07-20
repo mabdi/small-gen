@@ -99,9 +99,7 @@ SGObserver >> postCall: selector with: args in: aReceiver result: result preCall
 
 { #category : #'as yet unclassified' }
 SGObserver >> preCall: selector with: args in: aReceiver [
-
-	aReceiver = SAAssertGenerator
-		ifTrue: [ self halt ].
+	
 	^ aReceiver smallgen_enterMethod: selector args: args
 ]
 
