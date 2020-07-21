@@ -70,6 +70,67 @@ SmallGen class >> example3 [
 		generate
 ]
 
+{ #category : #example }
+SmallGen class >> exampleMocked [
+	^ self new
+		classesToGenerate: {SmallBank};
+		classesToObserve: {SmallBank};
+		sampleCode: [ | s |
+			s := SmallBank new.
+			s deposit: 1000 atRandom.
+			s balance > 100
+				ifTrue: [ s withdraw: 100 ] ];
+		generateMocked
+]
+
+{ #category : #example }
+SmallGen class >> exampleMocked2 [
+	^ self new
+		classesToGenerate: {SAAssertGenerator};
+		classesToObserve:
+			{SAAssertGenerator.
+			SAObservationFalse.
+			SAObservationTrue.
+			SAObservationNil.
+			SAObservationFraction.
+			SAObservationPrimitive.
+			SAObservationCollection.
+			SAObservationError.
+			SAObservationObject.
+			SAObservationValue.
+			SAObservationAbstract};
+		sampleCode: [ SmallAmp example ];
+		generateMocked
+]
+
+{ #category : #example }
+SmallGen class >> exampleMocked3 [
+	^ self new
+		classesToGenerate:
+			{SAObservationFalse.
+			SAObservationTrue.
+			SAObservationNil.
+			SAObservationFraction.
+			SAObservationPrimitive.
+			SAObservationCollection.
+			SAObservationObject.
+			SAObservationValue.
+			SAObservationAbstract};
+		classesToObserve:
+			{SAAssertGenerator.
+			SAObservationFalse.
+			SAObservationTrue.
+			SAObservationNil.
+			SAObservationFraction.
+			SAObservationPrimitive.
+			SAObservationCollection.
+			SAObservationObject.
+			SAObservationValue.
+			SAObservationAbstract};
+		sampleCode: [ SmallAmp example ];
+		generateMocked
+]
+
 { #category : #accessing }
 SmallGen >> classesToGenerate: anObject [
 	classesToGenerate := anObject asSet
@@ -88,6 +149,20 @@ SmallGen >> generate [
 	self stepSynthesis.
 	self stepInstallGenerated.
 	SGBuildTestClass new defaultTempPackage asPackage browse.
+]
+
+{ #category : #action }
+SmallGen >> generateMocked [
+	self stepObservation.
+	observations ifEmpty: [ ^ self halt ].
+	observations := SGMockedStrategy new
+		observations: observations;
+		classesToGenerate: classesToGenerate;
+		classesToObserve: classesToObserve;
+		prepare.
+	self stepSynthesis.
+	self stepInstallGenerated.
+	SGBuildTestClass new defaultTempPackage asPackage browse
 ]
 
 { #category : #accessing }
