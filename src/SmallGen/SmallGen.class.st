@@ -83,28 +83,16 @@ SmallGen >> classesToObserve: aClassList [
 { #category : #action }
 SmallGen >> generate [
 	self stepObservation.
-	self halt.
-	self stepFilterRecords.
-	self stepFilterHistories.
+	observations ifEmpty: [ ^ self halt ].
+	self stepPrepare.
 	self stepSynthesis.
-	self stepInstallGenerated
+	self stepInstallGenerated.
+	SGBuildTestClass new defaultTempPackage asPackage browse.
 ]
 
 { #category : #accessing }
 SmallGen >> sampleCode: aCode [
 	sampleCode:= aCode
-]
-
-{ #category : #steps }
-SmallGen >> stepFilterHistories [
-	observations := SGHistoryFilter new 
-		minimizerFor: observations
-]
-
-{ #category : #steps }
-SmallGen >> stepFilterRecords [
-	observations := SGRecordFilter new
-		minimizerFor: observations
 ]
 
 { #category : #steps }
@@ -119,6 +107,15 @@ SmallGen >> stepObservation [
 		generateObservationFor: classesToGenerate
 		targetsCapture: classesToObserve
 		byRunning: sampleCode
+]
+
+{ #category : #steps }
+SmallGen >> stepPrepare [
+	observations := SGShortestStrategy new
+		observations: observations;
+		classesToGenerate: classesToGenerate;
+		classesToObserve: classesToObserve;
+		prepare
 ]
 
 { #category : #steps }

@@ -1,28 +1,29 @@
 Class {
 	#name : #SGHistory,
-	#superclass : #Object,
+	#superclass : #SGState,
 	#instVars : [
-		'records',
-		'theClass',
-		'theValue',
+		'events',
 		'theUniqueId',
-		'callStack',
-		'primitive',
-		'lastState',
-		'coveredMethods',
-		'inScope'
+		'callStack'
 	],
 	#category : #'SmallGen-Model'
 }
 
-{ #category : #'instance creation' }
-SGHistory class >> for: anObject [
-	^ self new for: anObject; yourself 
-]
-
 { #category : #accessing }
 SGHistory >> append: aRecord [
-	self records add: aRecord
+	self events add: aRecord
+]
+
+{ #category : #adding }
+SGHistory >> argsDiff: argsListBefore to: argsListAfter [
+	| res item |
+	res := Array new: argsListBefore size.
+	argsListAfter
+		doWithIndex: [ :arg :idx | 
+			item := ((arg at: #data)
+				allButFirst: ((argsListBefore at: idx) at: #data) size).
+			res at: idx put: item ].
+	^ res
 ]
 
 { #category : #accessing }
@@ -30,122 +31,75 @@ SGHistory >> callStack [
 	^ callStack
 ]
 
-{ #category : #accessing }
-SGHistory >> copy [
-	| inst |
-	inst := self class new
-		records: (records collect: [ :r | r copy ]);
-		theClass: theClass;
-		theUniqueId: theUniqueId;
-		primitive: primitive;
-		theValue: theValue;
-		inScope: inScope;
-		yourself.
-	^ inst
+{ #category : #converting }
+SGHistory >> dictionaryRepresentation [
+	^ 
+			{('model' -> self class name).
+			('data' -> (self events collect: #dictionaryRepresentation) asArray).
+			('uuid' -> self theUniqueId).
+			('type' -> self theValue class name)} asDictionary
 ]
 
-{ #category : #initialization }
-SGHistory >> coveredMethods [
-	^ coveredMethods
-]
-
-{ #category : #'instance creation' }
-SGHistory >> for: anObject [
-	self initialize.
-	self setTheValue: anObject
-]
-
-{ #category : #'as yet unclassified' }
-SGHistory >> genNodeBy: aGenerator [
-	^ aGenerator genVariableArgNodeFrom: self
-]
-
-{ #category : #'as yet unclassified' }
-SGHistory >> genNotInScopeNodeBy: aGenerator name: aName [
-	^ aGenerator genSTONFromStringNodeFrom: self theValue name: aName
+{ #category : #adding }
+SGHistory >> enterMethod: selector on: receiver args: args [
+	| stateBefore |
+	stateBefore := nil.
+	self callStack
+		ifEmpty: [ stateBefore := Dictionary new.
+			stateBefore at: #args put: (args collect: #smallgen_state).
+			"stateBefore
+				at: #args_state
+				put: (args collect: #smallgen_state_identity)."
+			stateBefore at: #state put: receiver smallgen_state_identity ].
+	self callStack push: selector.
+	^ stateBefore
 ]
 
 { #category : #accessing }
-SGHistory >> inScope [
-	^ inScope
+SGHistory >> events [
+	^ events
 ]
 
-{ #category : #accessing }
-SGHistory >> inScope: anObject [
-	inScope := anObject
+{ #category : #adding }
+SGHistory >> exitMethod: selector on: aReceiver args: args result: aResult preCallData: preCallData [
+	| res popedSelector |
+	popedSelector := self callStack pop.
+	popedSelector = selector
+		ifFalse: [ self error: 'You shouldnt be here. something is wrong.' ].
+	self callStack ifNotEmpty: [ ^ false ].
+	
+	res := SGEvent new
+		selector: selector;
+		stateBefore: (preCallData at: #state);
+		stateAfter: aReceiver smallgen_state_identity;
+		argsBefore: (preCallData at: #args);
+		argsAfter: (args collect: #smallgen_state).
+	aResult == aReceiver
+		ifFalse: [ res result: aResult smallgen_state ].
+	self append: res.
+	^ true
 ]
 
 { #category : #initialization }
 SGHistory >> initialize [
-	records := OrderedCollection new.
+	events := OrderedCollection new.
 	callStack := Stack new.
-	coveredMethods:=Set new.
-	primitive := false
+	theUniqueId := UUID new asString36
 ]
 
-{ #category : #accessing }
-SGHistory >> lastState [
-	lastState ifNil: [ ^ self computeLastState ].
-	^ lastState
+{ #category : #'instance creation' }
+SGHistory >> initializeWith: anObject [
+	self initialize.
+	self theValue: anObject.
+	
 ]
 
-{ #category : #accessing }
-SGHistory >> lastState: aString [
-	lastState:=aString
-]
-
-{ #category : #accessing }
-SGHistory >> primitive [
-	^ primitive
-]
-
-{ #category : #accessing }
-SGHistory >> primitive: aBoolean [
-	primitive:= aBoolean 
-]
-
-{ #category : #printing }
-SGHistory >> printOn: aStream [
-	records isEmpty
-		ifTrue: [ aStream
-				nextPutAll: '(';
-				nextPutAll: self theClass asString;
-				nextPutAll: ': ';
-				nextPutAll: self theValue asString;
-				nextPutAll: ')' ]
-		ifFalse: [ aStream
-				nextPutAll: '(';
-				nextPutAll: self theClass asString;
-				nextPutAll: ':> ';
-				nextPutAll: ('' join: (records collect: #asString));
-				nextPutAll: ')' ]
-]
-
-{ #category : #accessing }
-SGHistory >> records [
-	^ records
-]
-
-{ #category : #accessing }
-SGHistory >> records: recs [
-	records := recs
-]
-
-{ #category : #accessing }
-SGHistory >> setTheValue: anObject [
-	theUniqueId := anObject basicIdentityHash.
-	self theClass: anObject class.
-	theValue := SGHelpers new serialize: anObject
-]
-
-{ #category : #accessing }
-SGHistory >> theClass [
-	^ theClass
-]
-
-{ #category : #accessing }
-SGHistory >> theClass: anObject [
-	theClass := anObject
+{ #category : #'as yet unclassified' }
+SGHistory >> state_identity [
+	| vars |
+	vars := (theValue class allInstVarNames
+		collect: [ :v | v -> (theValue instVarNamed: v) smallgen_state_identity ]) asDictionary.
+	^ vars
 ]
 
 { #category : #accessing }
@@ -156,14 +110,4 @@ SGHistory >> theUniqueId [
 { #category : #accessing }
 SGHistory >> theUniqueId: anId [
 	theUniqueId:=anId
-]
-
-{ #category : #accessing }
-SGHistory >> theValue [
-	^ theValue
-]
-
-{ #category : #accessing }
-SGHistory >> theValue: anObject [
-	theValue := anObject 
 ]
