@@ -49,8 +49,30 @@ SGMethodSynthesizer >> genAssertEqual: expression To: value [
 ]
 
 { #category : #'as yet unclassified' }
+SGMethodSynthesizer >> genAssertExpected: expected actual: actual from: resultObj [
+	| last_event statements |
+	
+	statements := OrderedCollection new.
+	statements
+		add:
+			(self
+				genAssertEqual: (self genCall: #class on: actual WithArgs: {})
+				To: (self genCall: #class on: expected WithArgs: {})).
+	last_event := (resultObj at: #data) last.
+	last_event ifNil: [ ^ statements ].
+	(last_event at: #state_after)
+		keysAndValuesDo: [ :k :v | 
+			statements
+				add:
+					(self
+						genAssertEqual: (self genCall: k on: actual WithArgs: {})
+						To: (self genCall: k on: expected WithArgs: {})) ].
+	^ statements
+]
+
+{ #category : #'as yet unclassified' }
 SGMethodSynthesizer >> genAssertionResult: observation receiver: aName alreadyGenerated: oldStatements [
-	| statements model |
+	| statements model expected |
 	statements := OrderedCollection new.
 	model := (observation at: #result)
 		at: #model
@@ -61,7 +83,7 @@ SGMethodSynthesizer >> genAssertionResult: observation receiver: aName alreadyGe
 					(self
 						genAssertEqual: (RBVariableNode named: aName)
 						To: (RBLiteralValueNode value: ((observation at: #result) at: #data))) ].
-	model = #SGCompound
+	({#SGCompound . #SGCompoundDictionary} includes: model)
 		ifTrue: [ statements
 				add:
 					(self
@@ -73,12 +95,27 @@ SGMethodSynthesizer >> genAssertionResult: observation receiver: aName alreadyGe
 						genAssertEqual: (self genCall: #class on: aName WithArgs: {})
 						To: (RBVariableNode named: ((observation at: #result) at: #type))) ].
 	model = #SGHistory
-		ifTrue: [ self halt ].
+		ifTrue: [ 
+			expected:= self nameForVariableSequential.
+			statements
+				addAll:
+					(self
+						genStatementForHistory: (observation at: #result)
+						name: expected 
+						alreadyGenerated: oldStatements , statements).
+				self genAssertExpected: expected actual: aName from: (observation at: #result). ].
 	model = #SGSkipped
-		ifTrue: [ self halt ].
+		ifTrue: [ statements
+				add:
+					(self
+						genAssertEqual: (self genCall: #class on: aName WithArgs: {})
+						To: (RBLiteralValueNode value: ((observation at: #result) at: #type))) ].
 	model = #SGClassPrimitive
-		ifTrue: [ self halt ].
-		model = #SGCompoundDictionary ifTrue: [ self halt ].
+		ifTrue: [ statements
+				add:
+					(self
+						genAssertEqual: (RBVariableNode named: aName)
+						To: (RBLiteralValueNode value: ((observation at: #result) at: #data))) ].
 	^ statements
 ]
 
