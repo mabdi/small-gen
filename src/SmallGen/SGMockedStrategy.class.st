@@ -35,7 +35,7 @@ SGMockedStrategy >> changeToMocked [
 								collect: [ :arg | self changeHistoryToMocked: arg ]).
 					lastCall at: #args_after put: OrderedCollection new.
 					history at: history size put: lastCall.
-					self halt. ] ]
+					 ] ]
 ]
 
 { #category : #decoration }

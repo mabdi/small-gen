@@ -177,6 +177,8 @@ SGMethodSynthesizer >> genNodeFor: observation [
 	(#SGCompoundDictionary -> [ :o | self genVariableArgNodeFrom: o ]).
 	(#SGCompound -> [ :o | self genVariableArgNodeFrom: o ]).
 	(#SGSkipped -> [:o | self genSkippedNodeFrom: o]).
+	(#SGMock -> [:o | RBVariableNode
+		named: (self nameForVariableMock: (o at: #type)) ]).
 	(#SGClassPrimitive -> [ :o | self genClassNameNodeFrom: o ])}
 		asDictionary at: (observation at: #model).
 	^ b value: observation 
@@ -373,16 +375,22 @@ SGMethodSynthesizer >> genStatementForHistory: observation name: aName alreadyGe
 SGMethodSynthesizer >> genStatementForMock: observation name: aName alreadyGenerated: oldStatements [
 	| statements tmp |
 	self assert: (observation at: #model) = #SGMock.
+	
 	statements := OrderedCollection new.
 	statements add: (self genRefToNewObject: #Mock name: aName).
 	(observation at: #data)
-		do: [ tmp := RBMessageNode
-				receiver: (RBVariableNode named: aName)
-				selector: #stub
-				arguments: {}.
-			self halt.
-			statements
-				add: tmp ].
+		do: [ :item | 
+			((item at: #result) at: #model) = #SGPrimitive
+				ifTrue: [ tmp := RBMessageNode
+	receiver:
+		(RBMessageNode
+			receiver:
+				(RBMessageNode receiver: (RBVariableNode named: aName) selector: #stub)
+			selector: (item at: #selector))
+	selector: #willReturn:
+	arguments: {(RBLiteralValueNode value: ((item at: #result) at: #data))}.
+					
+					statements add: tmp ] ].
 	^ statements
 ]
 
