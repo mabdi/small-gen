@@ -17,7 +17,6 @@ SGMockedStrategy >> changeHistoryToMocked: history [
 	events := Dictionary new.
 	(copy at: #data) do: [ :ev | events at: (ev at: #selector) put: ev ].
 	copy at: #data put: events values.
-	self halt.
 	^ copy
 ]
 
@@ -25,14 +24,18 @@ SGMockedStrategy >> changeHistoryToMocked: history [
 SGMockedStrategy >> changeToMocked [
 	| lastCall |
 	result
-		do:
-			[ :value | value do: [ :history | 
-				lastCall := (history at: #data) last.
-	lastCall at: #args_before put: ((lastCall at: #args_after) collect: [ :arg | self changeHistoryToMocked: arg  ]) .
-				lastCall at: #args_before put: OrderedCollection new.
-				
-				
-				 ] ]
+		do: [ :value | 
+			value
+				do: [ :history | 
+					lastCall := (history at: #data) last.
+					lastCall
+						at: #args_before
+						put:
+							((lastCall at: #args_after)
+								collect: [ :arg | self changeHistoryToMocked: arg ]).
+					lastCall at: #args_after put: OrderedCollection new.
+					history at: history size put: lastCall.
+					self halt. ] ]
 ]
 
 { #category : #decoration }
