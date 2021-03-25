@@ -166,6 +166,15 @@ SmallGen >> generateMocked [
 ]
 
 { #category : #accessing }
+SmallGen >> icebergProjectToObserve: project [
+	IceRepository registry
+		detect: [ :r | r name = 'Roassal3' ]
+		ifFound: [ :r | 
+			classesToObserve :=((r workingCopy packages select: [ :p | p isLoaded ])
+				flatCollect: [ :p | p package asPackage definedClasses ]) asSet ]
+]
+
+{ #category : #accessing }
 SmallGen >> sampleCode: aCode [
 	sampleCode:= aCode
 ]

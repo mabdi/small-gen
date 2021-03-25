@@ -34,12 +34,21 @@ SGObserver >> inScope: aClass [
 
 { #category : #'as yet unclassified' }
 SGObserver >> installObservers [
-	(captureTargets asOrderedCollection sort: [ :a :b  | b allSuperclasses includes: a ]) do: [ :aClass | self installObserversFor: aClass ]
+	"(captureTargets asOrderedCollection
+		sort: [ :a :b | b allSuperclasses includes: a ])
+		do: [ :aClass | self installObserversFor: aClass ]"
+
+	| allsubs |
+	allsubs := captureTargets flatCollect: [ :cls | cls allSubclasses ].
+	(captureTargets difference: allsubs asSet) do: [ :aClass | self installObserversFor: aClass ]
 ]
 
 { #category : #'as yet unclassified' }
 SGObserver >> installObserversFor: aClass [
-
+	aClass allSubclasses
+		do: [ :cls | 
+			(cls hasInstVarNamed: 'smallgen_state')
+		ifTrue: [ aClass removeInstVarNamed: 'smallgen_state' ] ].
 	(aClass allInstVarNames includes: 'smallgen_state')
 		ifFalse: [ aClass addInstVarNamed: 'smallgen_state' ].
 	aClass
@@ -54,9 +63,9 @@ SGObserver >> installObserversFor: aClass [
 	aClass
 		compile:
 			'smallgen_state_identity smallgen_state ifNil: [smallgen_state := SGHistory with: self]. ^ smallgen_state state_identity'.
-			
-	aClass methods reject: [:aMethod | (aMethod selector beginsWith: 'smallgen')] thenDo: [ :aMethod |  self installProxyOn: aMethod ].
-	
+	aClass methods
+		reject: [ :aMethod | aMethod selector beginsWith: 'smallgen' ]
+		thenDo: [ :aMethod | self installProxyOn: aMethod ]
 ]
 
 { #category : #'as yet unclassified' }
