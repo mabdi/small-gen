@@ -14,18 +14,6 @@ SGHistory >> append: aRecord [
 	self events add: aRecord
 ]
 
-{ #category : #adding }
-SGHistory >> argsDiff: argsListBefore to: argsListAfter [
-	| res item |
-	res := Array new: argsListBefore size.
-	argsListAfter
-		doWithIndex: [ :arg :idx | 
-			item := ((arg at: #data)
-				allButFirst: ((argsListBefore at: idx) at: #data) size).
-			res at: idx put: item ].
-	^ res
-]
-
 { #category : #accessing }
 SGHistory >> callStack [
 	^ callStack

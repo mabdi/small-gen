@@ -177,6 +177,8 @@ SGMethodSynthesizer >> genNodeFor: observation [
 	(#SGCompoundDictionary -> [ :o | self genVariableArgNodeFrom: o ]).
 	(#SGCompound -> [ :o | self genVariableArgNodeFrom: o ]).
 	(#SGSkipped -> [:o | self genSkippedNodeFrom: o]).
+	(#SGMock -> [:o | RBVariableNode
+		named: (self nameForVariableMock: (o at: #type)) ]).
 	(#SGClassPrimitive -> [ :o | self genClassNameNodeFrom: o ])}
 		asDictionary at: (observation at: #model).
 	^ b value: observation 
@@ -291,6 +293,14 @@ SGMethodSynthesizer >> genStatementForEvent: observation receiver: aName already
 								genStatementForHistory: anArg
 								name: (self nameForVariableByUniqueId: (anArg at: #uuid))
 								alreadyGenerated: oldStatements , statements) ].
+			(anArg at: #model) = #SGMock
+				ifTrue: [ statements
+						addAll:
+							(self
+								genStatementForMock: anArg
+								name: (self nameForVariableMock: (anArg at: #type))
+								alreadyGenerated: oldStatements , statements).
+					 ].
 			(anArg at: #model) = #SGCompound
 				ifTrue: [ statements
 						addAll:
@@ -298,7 +308,13 @@ SGMethodSynthesizer >> genStatementForEvent: observation receiver: aName already
 								genStatementForCompound: anArg
 								name: (self nameForVariableByUniqueId: (anArg at: #uuid))
 								alreadyGenerated: oldStatements , statements) ] ].
-	addAssignment := (observation at: #result ifPresent: [:x | x ifNil: [ false ] ifNotNil: [x at: #model ifPresent: [ true ] ifAbsent: [ false ]] ] ifAbsent: [ false]).
+	addAssignment := observation
+		at: #result
+		ifPresent: [ :x | 
+			x
+				ifNil: [ false ]
+				ifNotNil: [ x at: #model ifPresent: [ true ] ifAbsent: [ false ] ] ]
+		ifAbsent: [ false ].
 	addAssignment
 		ifTrue: [ result_var_name := self nameForVariableSequential.
 			statements
@@ -352,6 +368,29 @@ SGMethodSynthesizer >> genStatementForHistory: observation name: aName alreadyGe
 						genStatementForEvent: rec
 						receiver: aName
 						alreadyGenerated: statements copy) ].
+	^ statements
+]
+
+{ #category : #'as yet unclassified' }
+SGMethodSynthesizer >> genStatementForMock: observation name: aName alreadyGenerated: oldStatements [
+	| statements tmp |
+	self assert: (observation at: #model) = #SGMock.
+	
+	statements := OrderedCollection new.
+	statements add: (self genRefToNewObject: #Mock name: aName).
+	(observation at: #data)
+		do: [ :item | 
+			((item at: #result) at: #model) = #SGPrimitive
+				ifTrue: [ tmp := RBMessageNode
+	receiver:
+		(RBMessageNode
+			receiver:
+				(RBMessageNode receiver: (RBVariableNode named: aName) selector: #stub)
+			selector: (item at: #selector))
+	selector: #willReturn:
+	arguments: {(RBLiteralValueNode value: ((item at: #result) at: #data))}.
+					
+					statements add: tmp ] ].
 	^ statements
 ]
 
@@ -425,12 +464,11 @@ SGMethodSynthesizer >> generateInputs [
 			(observations at: aClass)
 				keysDo: [ :aMethod | 
 					anObservation := (observations at: aClass) at: aMethod.
-					self halt.
+					
 					inputs := self
 						genTestMethodForHistory: anObservation value
 						name: aMethod.
-					self addInputsToResult: inputs generatedFrom: anObservation ] ].
-	
+					self addInputsToResult: inputs generatedFrom: anObservation ] ]
 ]
 
 { #category : #'as yet unclassified' }
@@ -452,6 +490,11 @@ SGMethodSynthesizer >> initialize [
 { #category : #'as yet unclassified' }
 SGMethodSynthesizer >> nameForVariableByUniqueId: aUniqId [
 	^ 'var_', aUniqId asString
+]
+
+{ #category : #'as yet unclassified' }
+SGMethodSynthesizer >> nameForVariableMock: mockType [
+	^ 'mock_' , mockType 
 ]
 
 { #category : #'as yet unclassified' }
