@@ -5,8 +5,16 @@ Class {
 		'method',
 		'action'
 	],
+	#classInstVars : [
+		'active'
+	],
 	#category : #'SmallGen-Observation'
 }
+
+{ #category : #activation }
+SGProxy class >> activate [ 
+	active := true
+]
 
 { #category : #curing }
 SGProxy class >> cureClass: aClass [
@@ -21,6 +29,11 @@ SGProxy class >> cureMethod: aMethod [
 	m := aMethod.
 	[ m method class = self ] whileTrue: [ m := m method ].
 	m uninstall
+]
+
+{ #category : #activation }
+SGProxy class >> deactivate [
+	active := false
 ]
 
 { #category : #'as yet unclassified' }
@@ -76,14 +89,25 @@ SGProxy >> run: aSelector with: anArray in: aReceiver [
 	"Log the fact that the method was called and execute it."
 
 	| result preCallData |
+	SGObserver
+		logMe:
+			(' -> '
+				join:
+					{'enter'.
+					aReceiver class name.
+					aSelector}).
 	preCallData := action preCall: aSelector with: anArray in: aReceiver.
-	result := aReceiver withArgs: anArray executeMethod: method.
+	[ result := aReceiver withArgs: anArray executeMethod: method ]
+		on: Error
+		do: [ :x | SGObserver logMe: 'Error: ' , x class name ].
+	SGObserver logMe: 'result'.
 	action
 		postCall: aSelector
 		with: anArray
 		in: aReceiver
 		result: result
 		preCallData: preCallData.
+	SGObserver logMe: 'exit'.
 	^ result
 ]
 

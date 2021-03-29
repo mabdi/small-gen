@@ -51,15 +51,18 @@ SGHistory >> events [
 { #category : #adding }
 SGHistory >> exitMethod: selector on: aReceiver args: args result: aResult preCallData: preCallData [
 	| res popedSelector |
+	SGObserver logMe: 'SGHistory>>#exitMethod: enter'.
 	popedSelector := self callStack pop.
 	popedSelector = selector
 		ifFalse: [ self error: 'You shouldnt be here. something is wrong.' ].
 	self callStack ifNotEmpty: [ ^ false ].
-	
+	SGObserver logMe: 'SGHistory>>#exitMethod: passed ifNot'.
+	(aReceiver class = RSShapeAddedEvent and: [ selector = #shape: ])
+		ifTrue: [ Halt now ].
 	res := SGEvent new
 		selector: selector;
 		stateBefore: (preCallData at: #state);
-		stateAfter: aReceiver smallgen_state_identity;
+		stateAfter: (aReceiver smallgen_state_identity);
 		argsBefore: (preCallData at: #args);
 		argsAfter: (args collect: #smallgen_state).
 	aResult == aReceiver
@@ -83,10 +86,13 @@ SGHistory >> initializeWith: anObject [
 ]
 
 { #category : #'as yet unclassified' }
-SGHistory >> state_identity [
+SGHistory >> state_identity: depth [
 	| vars |
+	depth >= 0
+		ifFalse: [ ^ 0 ].
 	vars := (theValue class allInstVarNames
-		collect: [ :v | v -> (theValue instVarNamed: v) smallgen_state_identity ]) asDictionary.
+		collect: [ :v | v -> (theValue instVarNamed: v) smallgen_state_identity: depth -1 ])
+		asDictionary.
 	^ vars
 ]
 

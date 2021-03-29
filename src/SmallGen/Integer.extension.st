@@ -6,6 +6,6 @@ Integer >> smallgen_state [
 ]
 
 { #category : #'*SmallGen' }
-Integer >> smallgen_state_identity [
+Integer >> smallgen_state_identity: depth [
 	^ self
 ]

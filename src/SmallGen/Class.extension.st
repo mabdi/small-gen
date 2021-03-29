@@ -6,6 +6,6 @@ Class >> smallgen_state [
 ]
 
 { #category : #'*SmallGen' }
-Class >> smallgen_state_identity [
-	^ self name asSymbol 
+Class >> smallgen_state_identity: depth [
+	^ self name asSymbol
 ]

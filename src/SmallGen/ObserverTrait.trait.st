@@ -21,3 +21,9 @@ ObserverTrait >> smallgen_state [ smallgen_state ifNil: [smallgen_state := SGHis
 { #category : #'as yet unclassified' }
 ObserverTrait >> smallgen_state_identity [ smallgen_state ifNil: [smallgen_state := SGHistory with: self]. ^ smallgen_state state_identity
 ]
+
+{ #category : #'as yet unclassified' }
+ObserverTrait >> smallgen_state_identity: depth [
+	smallgen_state ifNil: [ smallgen_state := SGHistory with: self ].
+	^ smallgen_state state_identity
+]

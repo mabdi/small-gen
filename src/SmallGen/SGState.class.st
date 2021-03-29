@@ -25,8 +25,8 @@ SGState >> initializeWith: anObject [
 ]
 
 { #category : #'as yet unclassified' }
-SGState >> state_identity [
-	^ theValue smallgen_state_identity 
+SGState >> state_identity: depth [
+	^ theValue smallgen_state_identity
 ]
 
 { #category : #accessing }

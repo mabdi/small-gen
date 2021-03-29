@@ -167,11 +167,12 @@ SmallGen >> generateMocked [
 
 { #category : #accessing }
 SmallGen >> icebergProjectToObserve: project [
-	IceRepository registry
-		detect: [ :r | r name = 'Roassal3' ]
-		ifFound: [ :r | 
-			classesToObserve :=((r workingCopy packages select: [ :p | p isLoaded ])
-				flatCollect: [ :p | p package asPackage definedClasses ]) asSet ]
+	| repo loaded |
+	repo := IceRepository registry detect: [ :r | r name = project ].
+	loaded := (repo workingCopy packages select: [ :p | p isLoaded ])
+		flatCollect: [ :p | p package asPackage definedClasses ].
+	loaded := loaded reject: #isTrait.
+	classesToObserve := loaded asSet
 ]
 
 { #category : #accessing }

@@ -19,6 +19,11 @@ Object >> smallgen_state [
 
 { #category : #'*SmallGen' }
 Object >> smallgen_state_identity [
+	self smallgen_state_identity: 3
+]
+
+{ #category : #'*SmallGen' }
+Object >> smallgen_state_identity: depth [
 	self flag: #todo.	"choose a better name for me"
 	^ self basicIdentityHash
 ]
