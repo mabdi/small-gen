@@ -57,12 +57,11 @@ SGHistory >> exitMethod: selector on: aReceiver args: args result: aResult preCa
 		ifFalse: [ self error: 'You shouldnt be here. something is wrong.' ].
 	self callStack ifNotEmpty: [ ^ false ].
 	SGObserver logMe: 'SGHistory>>#exitMethod: passed ifNot'.
-	(aReceiver class = RSShapeAddedEvent and: [ selector = #shape: ])
-		ifTrue: [ Halt now ].
+	
 	res := SGEvent new
 		selector: selector;
 		stateBefore: (preCallData at: #state);
-		stateAfter: (aReceiver smallgen_state_identity);
+		stateAfter: aReceiver smallgen_state_identity;
 		argsBefore: (preCallData at: #args);
 		argsAfter: (args collect: #smallgen_state).
 	aResult == aReceiver
@@ -91,7 +90,8 @@ SGHistory >> state_identity: depth [
 	depth >= 0
 		ifFalse: [ ^ 0 ].
 	vars := (theValue class allInstVarNames
-		collect: [ :v | v -> (theValue instVarNamed: v) smallgen_state_identity: depth -1 ])
+		collect:
+			[ :v | v -> ((theValue instVarNamed: v) smallgen_state_identity: depth - 1) ])
 		asDictionary.
 	^ vars
 ]
