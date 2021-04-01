@@ -33,15 +33,9 @@ SGObserver >> addStateInstanceVariable: aClass [
 			(cls hasInstVarNamed: 'smallgen_state')
 				ifTrue: [ aClass removeInstVarNamed: 'smallgen_state' ] ].
 	(aClass allInstVarNames includes: 'smallgen_state')
-		ifFalse: [ aClass addInstVarNamed: 'smallgen_state' ].aClass compile: (ObserverTrait >> #smallgen_state) sourceCode.
-	aClass
-		compile: (ObserverTrait >> #smallgen_enterMethod:args:) sourceCode.
-	aClass
-		compile:
-			(ObserverTrait >> #smallgen_exitMethod:args:result:preCallData:)
-				sourceCode.
-	aClass
-		compile: (ObserverTrait >> #smallgen_state_identity:) sourceCode.
+		ifFalse: [ aClass addInstVarNamed: 'smallgen_state' ].
+	self observerMethods do: [ :mtd | aClass compile: mtd sourceCode ].
+	
 ]
 
 { #category : #'instance creation' }
@@ -113,6 +107,14 @@ SGObserver >> observe [
 ]
 
 { #category : #'as yet unclassified' }
+SGObserver >> observerMethods [
+	^ {ObserverTrait >> #smallgen_state.
+	ObserverTrait >> #smallgen_enterMethod:args:
+			.ObserverTrait >> #smallgen_exitMethod:args:result:preCallData:.
+			ObserverTrait >> #smallgen_state_identity:}
+]
+
+{ #category : #'as yet unclassified' }
 SGObserver >> postCall: selector with: args in: aReceiver result: result preCallData: preCallData [
 	| canLog |
 	self logMe: 'postcall enter'.
@@ -157,10 +159,7 @@ SGObserver >> uninstallObserversFor: aClass [
 	"aClass removeSelector: #smallGenCallRecords:."
 
 	SGProxy cureClass: aClass.
-	aClass removeSelector: #smallgen_state.
-	aClass removeSelector: #smallgen_enterMethod:args:.
-	aClass removeSelector: #smallgen_exitMethod:args:result:preCallData:.
-	aClass removeSelector: #smallgen_state_identity.
+	self observerMethods do: [ :mtd | aClass removeSelector: mtd selector ].
 	(aClass hasInstVarNamed: 'smallgen_state')
 		ifTrue: [ aClass removeInstVarNamed: 'smallgen_state' ]
 ]
