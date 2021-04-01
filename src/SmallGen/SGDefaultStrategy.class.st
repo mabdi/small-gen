@@ -6,7 +6,7 @@ Class {
 
 { #category : #decoration }
 SGDefaultStrategy >> prepare [
-	self halt.
+	"self halt."
 	"observations := SGHistoryFilter new minimizerFor: observations.
 	observations := SGRecordFilter new minimizerFor: observations."
 	^ observations

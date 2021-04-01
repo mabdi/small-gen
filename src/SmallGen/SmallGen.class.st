@@ -152,6 +152,24 @@ SmallGen >> generate [
 ]
 
 { #category : #action }
+SmallGen >> generateDefault [
+	self stepObservation.
+	observations ifEmpty: [ ^ self halt ].
+	observations := SGDefaultStrategy new
+		observations: observations;
+		classesToGenerate: classesToGenerate;
+		classesToObserve: classesToObserve;
+		prepare.
+	generatedInputs := SGMethodSynthesizer new
+		generateInputsFor: classesToGenerate
+		withObservation: observations
+		andCaptureTargets: classesToObserve.
+	self stepInstallGenerated.
+	SGBuildTestClass new defaultTempPackage asPackage browse.
+	observations inspect 
+]
+
+{ #category : #action }
 SmallGen >> generateMocked [
 	self stepObservation.
 	observations ifEmpty: [ ^ self halt ].

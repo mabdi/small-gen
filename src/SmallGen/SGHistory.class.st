@@ -88,7 +88,7 @@ SGHistory >> initializeWith: anObject [
 SGHistory >> state_identity: depth [
 	| vars |
 	depth >= 0
-		ifFalse: [ ^ 0 ].
+		ifFalse: [ ^ #smallgen_skip ].
 	vars := (theValue class allInstVarNames
 		collect:
 			[ :v | v -> ((theValue instVarNamed: v) smallgen_state_identity: depth - 1) ])

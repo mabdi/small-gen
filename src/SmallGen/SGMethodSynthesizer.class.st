@@ -8,7 +8,8 @@ Class {
 		'targetClasses',
 		'generatedInputs',
 		'methodNumber',
-		'variableSequece'
+		'variableSequece',
+		'generateAsserts'
 	],
 	#category : #'SmallGen-Synthesis'
 }
@@ -299,8 +300,7 @@ SGMethodSynthesizer >> genStatementForEvent: observation receiver: aName already
 							(self
 								genStatementForMock: anArg
 								name: (self nameForVariableMock: (anArg at: #type))
-								alreadyGenerated: oldStatements , statements).
-					 ].
+								alreadyGenerated: oldStatements , statements) ].
 			(anArg at: #model) = #SGCompound
 				ifTrue: [ statements
 						addAll:
@@ -326,24 +326,26 @@ SGMethodSynthesizer >> genStatementForEvent: observation receiver: aName already
 								on: aName
 								WithArgs: (observation at: #args_before))
 						to: result_var_name).
-			statements
-				addAll:
-					(self
-						genAssertionResult: observation
-						receiver: result_var_name
-						alreadyGenerated: oldStatements) ]
+			generateAsserts
+				ifTrue: [ statements
+						addAll:
+							(self
+								genAssertionResult: observation
+								receiver: result_var_name
+								alreadyGenerated: oldStatements) ] ]
 		ifFalse: [ statements
 				add:
 					(self
 						genCall: (observation at: #selector)
 						on: aName
 						WithArgs: (observation at: #args_before)) ].
-	statements
+	generateAsserts ifTrue: 
+	[statements
 		addAll:
 			(self
 				genAssertionState: observation
 				receiver: aName
-				alreadyGenerated: oldStatements).
+				alreadyGenerated: oldStatements)].
 	^ statements
 ]
 
@@ -476,8 +478,21 @@ SGMethodSynthesizer >> generateInputsFor: aListOfTargetClass withObservation: aD
 	targetClasses := aListOfTargetClass asSet.
 	observations := aDicOfObservation.
 	captureTargets := anArray.
+	generateAsserts := false.
 	generatedInputs := Dictionary new.
-	methodNumber:= 0.
+	methodNumber := 0.
+	self generateInputs.
+	^ generatedInputs
+]
+
+{ #category : #'as yet unclassified' }
+SGMethodSynthesizer >> generateTestFor: aListOfTargetClass withObservation: aDicOfObservation andCaptureTargets: anArray [
+	targetClasses := aListOfTargetClass asSet.
+	observations := aDicOfObservation.
+	captureTargets := anArray.
+	generateAsserts := true.
+	generatedInputs := Dictionary new.
+	methodNumber := 0.
 	self generateInputs.
 	^ generatedInputs
 ]
