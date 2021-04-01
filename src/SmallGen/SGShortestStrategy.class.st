@@ -94,6 +94,8 @@ SGShortestStrategy >> cloneHistory: aHistory minimize: doMinimize [
 { #category : #'as yet unclassified' }
 SGShortestStrategy >> diffState: state_before with: state_after [
 	| clone diff |
+	state_after isDictionary ifFalse: [ ^ state_before ].
+	state_before isDictionary ifFalse: [ ^ state_after  ].
 	clone := state_after copy.
 	state_after
 		keysDo: [ :k | 

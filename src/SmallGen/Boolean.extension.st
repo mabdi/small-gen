@@ -6,6 +6,6 @@ Boolean >> smallgen_state [
 ]
 
 { #category : #'*SmallGen' }
-Boolean >> smallgen_state_identity [
+Boolean >> smallgen_state_identity:depth [
 	^ self
 ]

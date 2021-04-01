@@ -6,6 +6,6 @@ String >> smallgen_state [
 ]
 
 { #category : #'*SmallGen' }
-String >> smallgen_state_identity [
-	^ self asString 
+String >> smallgen_state_identity:depth [
+	^ self asString
 ]

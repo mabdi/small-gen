@@ -17,6 +17,26 @@ SGObserver class >> initWith: config [
 	^ self new with: config
 ]
 
+{ #category : #'as yet unclassified' }
+SGObserver class >> logMe: txt [ 
+	Stdio stdout
+		nextPutAll: txt;
+		lf;
+		flush
+]
+
+{ #category : #'as yet unclassified' }
+SGObserver >> addStateInstanceVariable: aClass [
+	self logMe: 'state_var:  ' , aClass name.
+	aClass allSubclasses
+		do: [ :cls | 
+			(cls hasInstVarNamed: 'smallgen_state')
+				ifTrue: [ aClass removeInstVarNamed: 'smallgen_state' ] ].
+	(aClass allInstVarNames includes: 'smallgen_state')
+		ifFalse: [ aClass addInstVarNamed: 'smallgen_state' ].
+	self observerMethods do: [ :mtd | aClass compile: mtd sourceCode ]
+]
+
 { #category : #'instance creation' }
 SGObserver >> generateObservationFor: aListOfClasses targetsCapture: aListOfClassesCapture byRunning: aSampleCode [
 	sampleCode := aSampleCode.
@@ -34,29 +54,25 @@ SGObserver >> inScope: aClass [
 
 { #category : #'as yet unclassified' }
 SGObserver >> installObservers [
-	(captureTargets asOrderedCollection sort: [ :a :b  | b allSuperclasses includes: a ]) do: [ :aClass | self installObserversFor: aClass ]
+	"(captureTargets asOrderedCollection
+		sort: [ :a :b | b allSuperclasses includes: a ])
+		do: [ :aClass | self installObserversFor: aClass ]"
+
+	| allsubs |
+	allsubs := captureTargets flatCollect: [ :cls | cls allSubclasses ].
+	(captureTargets difference: allsubs asSet)
+		do: [ :aClass | self addStateInstanceVariable: aClass ].
+	self logMe: 'state variable and methods installation done '.	
+	captureTargets do: [ :cls | self installObserversFor: cls ].
+	self logMe: 'observer installation done '
 ]
 
 { #category : #'as yet unclassified' }
 SGObserver >> installObserversFor: aClass [
-
-	(aClass allInstVarNames includes: 'smallgen_state')
-		ifFalse: [ aClass addInstVarNamed: 'smallgen_state' ].
-	aClass
-		compile:
-			'smallgen_state smallgen_state ifNil: [smallgen_state := SGHistory with: self]. ^ smallgen_state dictionaryRepresentation'.
-	aClass
-		compile:
-			'smallgen_enterMethod: aSelector args: args smallgen_state ifNil: [smallgen_state := SGHistory with: self]. ^ smallgen_state enterMethod: aSelector on: self  args: args'.
-	aClass
-		compile:
-			'smallgen_exitMethod: aSelector args: args result: aResult preCallData: preCallData smallgen_state ifNil: [smallgen_state := SGHistory with: self]. ^ smallgen_state exitMethod: aSelector on: self args: args result: aResult preCallData: preCallData'.
-	aClass
-		compile:
-			'smallgen_state_identity smallgen_state ifNil: [smallgen_state := SGHistory with: self]. ^ smallgen_state state_identity'.
-			
-	aClass methods reject: [:aMethod | (aMethod selector beginsWith: 'smallgen')] thenDo: [ :aMethod |  self installProxyOn: aMethod ].
 	
+	aClass methods
+		reject: [ :aMethod | aMethod selector beginsWith: 'smallgen' ]
+		thenDo: [ :aMethod | self installProxyOn: aMethod ]
 ]
 
 { #category : #'as yet unclassified' }
@@ -75,6 +91,11 @@ SGObserver >> isItSafeToProxyTo: aMethod [
 	^ true
 ]
 
+{ #category : #'as yet unclassified' }
+SGObserver >> logMe: txt [
+	self class logMe: txt
+]
+
 { #category : #'instance creation' }
 SGObserver >> observe [
 	[ self installObservers.
@@ -82,6 +103,14 @@ SGObserver >> observe [
 		ensure: [ self uninstallObservers ].
 	
 	^ observations
+]
+
+{ #category : #'as yet unclassified' }
+SGObserver >> observerMethods [
+	^ {ObserverTrait >> #smallgen_state.
+	ObserverTrait >> #smallgen_enterMethod:args:
+			.ObserverTrait >> #smallgen_exitMethod:args:result:preCallData:.
+			ObserverTrait >> #smallgen_state_identity:}
 ]
 
 { #category : #'as yet unclassified' }
@@ -94,7 +123,8 @@ SGObserver >> postCall: selector with: args in: aReceiver result: result preCall
 		preCallData: preCallData.
 	canLog
 		ifFalse: [ ^ self ].
-	self snapShotIfInScope: aReceiver
+	self snapShotIfInScope: aReceiver.
+	
 ]
 
 { #category : #'as yet unclassified' }
@@ -124,10 +154,7 @@ SGObserver >> uninstallObserversFor: aClass [
 	"aClass removeSelector: #smallGenCallRecords:."
 
 	SGProxy cureClass: aClass.
-	aClass removeSelector: #smallgen_state.
-	aClass removeSelector: #smallgen_enterMethod:args:.
-	aClass removeSelector: #smallgen_exitMethod:args:result:preCallData:.
-	aClass removeSelector: #smallgen_state_identity.
+	self observerMethods do: [ :mtd | aClass removeSelector: mtd selector ].
 	(aClass hasInstVarNamed: 'smallgen_state')
 		ifTrue: [ aClass removeInstVarNamed: 'smallgen_state' ]
 ]

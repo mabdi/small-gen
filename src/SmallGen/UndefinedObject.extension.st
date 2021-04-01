@@ -6,6 +6,6 @@ UndefinedObject >> smallgen_state [
 ]
 
 { #category : #'*SmallGen' }
-UndefinedObject >> smallgen_state_identity [
+UndefinedObject >> smallgen_state_identity:depth [
 	^ nil
 ]

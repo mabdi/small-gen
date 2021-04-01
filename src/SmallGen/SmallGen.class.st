@@ -152,6 +152,24 @@ SmallGen >> generate [
 ]
 
 { #category : #action }
+SmallGen >> generateDefault [
+	self stepObservation.
+	observations ifEmpty: [ ^ self halt ].
+	observations := SGDefaultStrategy new
+		observations: observations;
+		classesToGenerate: classesToGenerate;
+		classesToObserve: classesToObserve;
+		prepare.
+	generatedInputs := SGMethodSynthesizer new
+		generateInputsFor: classesToGenerate
+		withObservation: observations
+		andCaptureTargets: classesToObserve.
+	self stepInstallGenerated.
+	SGBuildTestClass new defaultTempPackage asPackage browse.
+	observations inspect 
+]
+
+{ #category : #action }
 SmallGen >> generateMocked [
 	self stepObservation.
 	observations ifEmpty: [ ^ self halt ].
@@ -163,6 +181,16 @@ SmallGen >> generateMocked [
 	self stepSynthesis.
 	self stepInstallGenerated.
 	SGBuildTestClass new defaultTempPackage asPackage browse
+]
+
+{ #category : #accessing }
+SmallGen >> icebergProjectToObserve: project [
+	| repo loaded |
+	repo := IceRepository registry detect: [ :r | r name = project ].
+	loaded := (repo workingCopy packages select: [ :p | p isLoaded ])
+		flatCollect: [ :p | p package asPackage definedClasses ].
+	loaded := loaded reject: #isTrait.
+	classesToObserve := loaded asSet
 ]
 
 { #category : #accessing }

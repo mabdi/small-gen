@@ -6,6 +6,6 @@ Character >> smallgen_state [
 ]
 
 { #category : #'*SmallGen' }
-Character >> smallgen_state_identity [
+Character >> smallgen_state_identity: depth [
 	^ self
 ]

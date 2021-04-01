@@ -55,7 +55,6 @@ SGHistory >> exitMethod: selector on: aReceiver args: args result: aResult preCa
 	popedSelector = selector
 		ifFalse: [ self error: 'You shouldnt be here. something is wrong.' ].
 	self callStack ifNotEmpty: [ ^ false ].
-	
 	res := SGEvent new
 		selector: selector;
 		stateBefore: (preCallData at: #state);
@@ -83,10 +82,14 @@ SGHistory >> initializeWith: anObject [
 ]
 
 { #category : #'as yet unclassified' }
-SGHistory >> state_identity [
+SGHistory >> state_identity: depth [
 	| vars |
+	depth >= 0
+		ifFalse: [ ^ #smallgen_skip ].
 	vars := (theValue class allInstVarNames
-		collect: [ :v | v -> (theValue instVarNamed: v) smallgen_state_identity ]) asDictionary.
+		collect:
+			[ :v | v -> ((theValue instVarNamed: v) smallgen_state_identity: depth - 1) ])
+		asDictionary.
 	^ vars
 ]
 
