@@ -25,6 +25,25 @@ SGObserver class >> logMe: txt [
 		flush
 ]
 
+{ #category : #'as yet unclassified' }
+SGObserver >> addStateInstanceVariable: aClass [
+	self logMe: 'state_var' , aClass name.
+	aClass allSubclasses
+		do: [ :cls | 
+			(cls hasInstVarNamed: 'smallgen_state')
+				ifTrue: [ aClass removeInstVarNamed: 'smallgen_state' ] ].
+	(aClass allInstVarNames includes: 'smallgen_state')
+		ifFalse: [ aClass addInstVarNamed: 'smallgen_state' ].aClass compile: (ObserverTrait >> #smallgen_state) sourceCode.
+	aClass
+		compile: (ObserverTrait >> #smallgen_enterMethod:args:) sourceCode.
+	aClass
+		compile:
+			(ObserverTrait >> #smallgen_exitMethod:args:result:preCallData:)
+				sourceCode.
+	aClass
+		compile: (ObserverTrait >> #smallgen_state_identity:) sourceCode.
+]
+
 { #category : #'instance creation' }
 SGObserver >> generateObservationFor: aListOfClasses targetsCapture: aListOfClassesCapture byRunning: aSampleCode [
 	sampleCode := aSampleCode.
@@ -49,31 +68,15 @@ SGObserver >> installObservers [
 	| allsubs |
 	allsubs := captureTargets flatCollect: [ :cls | cls allSubclasses ].
 	(captureTargets difference: allsubs asSet)
-		do: [ :aClass | self installObserversFor: aClass ].
+		do: [ :aClass | self addStateInstanceVariable: aClass ].
+	self logMe: 'state variable and methods installation done '.	
+	captureTargets do: [ :cls | self installObserversFor: cls ].
 	self logMe: 'observer installation done '
 ]
 
 { #category : #'as yet unclassified' }
 SGObserver >> installObserversFor: aClass [
-	self logMe: aClass name.
-	aClass allSubclasses
-		do: [ :cls | 
-			(cls hasInstVarNamed: 'smallgen_state')
-				ifTrue: [ aClass removeInstVarNamed: 'smallgen_state' ] ].
-	(aClass allInstVarNames includes: 'smallgen_state')
-		ifFalse: [ aClass addInstVarNamed: 'smallgen_state' ].
-	aClass
-		compile:
-			'smallgen_state smallgen_state ifNil: [smallgen_state := SGHistory with: self]. ^ smallgen_state dictionaryRepresentation'.
-	aClass
-		compile:
-			'smallgen_enterMethod: aSelector args: args smallgen_state ifNil: [smallgen_state := SGHistory with: self]. ^ smallgen_state enterMethod: aSelector on: self  args: args'.
-	aClass
-		compile:
-			'smallgen_exitMethod: aSelector args: args result: aResult preCallData: preCallData smallgen_state ifNil: [smallgen_state := SGHistory with: self]. ^ smallgen_state exitMethod: aSelector on: self args: args result: aResult preCallData: preCallData'.
-	aClass
-		compile:
-			'smallgen_state_identity: depth smallgen_state ifNil: [smallgen_state := SGHistory with: self]. ^ smallgen_state state_identity: depth'.
+	
 	aClass methods
 		reject: [ :aMethod | aMethod selector beginsWith: 'smallgen' ]
 		thenDo: [ :aMethod | self installProxyOn: aMethod ]
