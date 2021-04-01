@@ -135,6 +135,11 @@ SGMethodSynthesizer >> genAssgnmentFor: aNode to: aName [
 ]
 
 { #category : #'as yet unclassified' }
+SGMethodSynthesizer >> genBlockClosureNodeFrom: observation [
+	^  (observation at: #data)
+]
+
+{ #category : #'as yet unclassified' }
 SGMethodSynthesizer >> genCall: selector on: receiver WithArgs: args [
 	| argNodes |
 	argNodes := self genArgNodesFrom: args.
@@ -179,6 +184,7 @@ SGMethodSynthesizer >> genNodeFor: observation [
 	(#SGCompoundDictionary -> [ :o | self genVariableArgNodeFrom: o ]).
 	(#SGCompound -> [ :o | self genVariableArgNodeFrom: o ]).
 	(#SGSkipped -> [:o | self genSkippedNodeFrom: o]).
+	(#SGBlockClosure -> [:o | self genBlockClosureNodeFrom: o]).
 	(#SGMock -> [:o | RBVariableNode
 		named: (self nameForVariableMock: (o at: #type)) ]).
 	(#SGClassPrimitive -> [ :o | self genClassNameNodeFrom: o ])}

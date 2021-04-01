@@ -8,7 +8,7 @@ Trait {
 
 { #category : #'as yet unclassified' }
 ObserverTrait >> smallgen_enterMethod: aSelector args: args [
-	smallgen_state ifNil: [ smallgen_state := SGHistory with: self ].
+	self smallgen_state_init.
 	SGObserver
 		logMe:
 			(' -> '
@@ -21,8 +21,8 @@ ObserverTrait >> smallgen_enterMethod: aSelector args: args [
 
 { #category : #'as yet unclassified' }
 ObserverTrait >> smallgen_exitMethod: aSelector args: args result: aResult preCallData: preCallData [
-	smallgen_state ifNil: [ smallgen_state := SGHistory with: self ].
-		SGObserver
+	self smallgen_state_init.
+	SGObserver
 		logMe:
 			(' -> '
 				join:
@@ -38,15 +38,24 @@ ObserverTrait >> smallgen_exitMethod: aSelector args: args result: aResult preCa
 ]
 
 { #category : #accessing }
-ObserverTrait >> smallgen_state [ smallgen_state ifNil: [smallgen_state := SGHistory with: self]. ^ smallgen_state dictionaryRepresentation
+ObserverTrait >> smallgen_state [
+	self smallgen_state_init.
+	^ smallgen_state dictionaryRepresentation
 ]
 
 { #category : #'as yet unclassified' }
-ObserverTrait >> smallgen_state_identity [ smallgen_state ifNil: [smallgen_state := SGHistory with: self]. ^ smallgen_state state_identity
+ObserverTrait >> smallgen_state_identity [
+	self smallgen_state_init.
+	^ smallgen_state state_identity
 ]
 
 { #category : #'as yet unclassified' }
 ObserverTrait >> smallgen_state_identity: depth [
-	smallgen_state ifNil: [ smallgen_state := SGHistory with: self ].
+	self smallgen_state_init.
 	^ smallgen_state state_identity: depth
+]
+
+{ #category : #accessing }
+ObserverTrait >> smallgen_state_init [
+	smallgen_state ifNil: [ smallgen_state := SGHistory with: self ]
 ]
