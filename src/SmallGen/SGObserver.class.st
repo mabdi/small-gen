@@ -27,15 +27,14 @@ SGObserver class >> logMe: txt [
 
 { #category : #'as yet unclassified' }
 SGObserver >> addStateInstanceVariable: aClass [
-	self logMe: 'state_var' , aClass name.
+	self logMe: 'state_var:  ' , aClass name.
 	aClass allSubclasses
 		do: [ :cls | 
 			(cls hasInstVarNamed: 'smallgen_state')
 				ifTrue: [ aClass removeInstVarNamed: 'smallgen_state' ] ].
 	(aClass allInstVarNames includes: 'smallgen_state')
 		ifFalse: [ aClass addInstVarNamed: 'smallgen_state' ].
-	self observerMethods do: [ :mtd | aClass compile: mtd sourceCode ].
-	
+	self observerMethods do: [ :mtd | aClass compile: mtd sourceCode ]
 ]
 
 { #category : #'instance creation' }
@@ -117,19 +116,15 @@ SGObserver >> observerMethods [
 { #category : #'as yet unclassified' }
 SGObserver >> postCall: selector with: args in: aReceiver result: result preCallData: preCallData [
 	| canLog |
-	self logMe: 'postcall enter'.
-	self logMe: 'receiver: ' , aReceiver class name.
 	canLog := aReceiver
 		smallgen_exitMethod: selector
 		args: args
 		result: result
 		preCallData: preCallData.
-	self logMe: 'canLog: ' , canLog asString.
 	canLog
 		ifFalse: [ ^ self ].
-	self logMe: 'passed canLog'.
 	self snapShotIfInScope: aReceiver.
-	self logMe: 'postCall exit'
+	
 ]
 
 { #category : #'as yet unclassified' }

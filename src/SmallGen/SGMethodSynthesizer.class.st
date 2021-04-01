@@ -9,7 +9,8 @@ Class {
 		'generatedInputs',
 		'methodNumber',
 		'variableSequece',
-		'generateAsserts'
+		'generateAsserts',
+		'generateExtraTemps'
 	],
 	#category : #'SmallGen-Synthesis'
 }
@@ -280,7 +281,7 @@ SGMethodSynthesizer >> genStatementForDictionary: observation name: aName alread
 
 { #category : #'as yet unclassified' }
 SGMethodSynthesizer >> genStatementForEvent: observation receiver: aName alreadyGenerated: oldStatements [
-	| statements result_var_name addAssignment |
+	| statements result_var_name addAssignment tmp |
 	self assert: (observation at: #model) = #SGEvent.
 	statements := OrderedCollection new.
 	(observation at: #remove ifAbsent: [ false ])
@@ -316,16 +317,14 @@ SGMethodSynthesizer >> genStatementForEvent: observation receiver: aName already
 				ifNotNil: [ x at: #model ifPresent: [ true ] ifAbsent: [ false ] ] ]
 		ifAbsent: [ false ].
 	addAssignment
-		ifTrue: [ result_var_name := self nameForVariableSequential.
-			statements
-				add:
-					(self
-						genAssgnmentFor:
-							(self
-								genCall: (observation at: #selector)
-								on: aName
-								WithArgs: (observation at: #args_before))
-						to: result_var_name).
+		ifTrue: [ 
+			tmp := self
+				genCall: (observation at: #selector)
+				on: aName
+				WithArgs: (observation at: #args_before).
+			generateExtraTemps
+				ifTrue: [ result_var_name := self nameForVariableSequential.tmp := self genAssgnmentFor: tmp to: result_var_name ].
+			statements add: tmp.
 			generateAsserts
 				ifTrue: [ statements
 						addAll:
@@ -339,13 +338,13 @@ SGMethodSynthesizer >> genStatementForEvent: observation receiver: aName already
 						genCall: (observation at: #selector)
 						on: aName
 						WithArgs: (observation at: #args_before)) ].
-	generateAsserts ifTrue: 
-	[statements
-		addAll:
-			(self
-				genAssertionState: observation
-				receiver: aName
-				alreadyGenerated: oldStatements)].
+	generateAsserts
+		ifTrue: [ statements
+				addAll:
+					(self
+						genAssertionState: observation
+						receiver: aName
+						alreadyGenerated: oldStatements) ].
 	^ statements
 ]
 
@@ -466,10 +465,9 @@ SGMethodSynthesizer >> generateInputs [
 			(observations at: aClass)
 				keysDo: [ :aMethod | 
 					anObservation := (observations at: aClass) at: aMethod.
-					
 					inputs := self
 						genTestMethodForHistory: anObservation value
-						name: aMethod.
+						name: 'test', aMethod.
 					self addInputsToResult: inputs generatedFrom: anObservation ] ]
 ]
 
@@ -479,6 +477,7 @@ SGMethodSynthesizer >> generateInputsFor: aListOfTargetClass withObservation: aD
 	observations := aDicOfObservation.
 	captureTargets := anArray.
 	generateAsserts := false.
+	generateExtraTemps := false.
 	generatedInputs := Dictionary new.
 	methodNumber := 0.
 	self generateInputs.
@@ -491,6 +490,7 @@ SGMethodSynthesizer >> generateTestFor: aListOfTargetClass withObservation: aDic
 	observations := aDicOfObservation.
 	captureTargets := anArray.
 	generateAsserts := true.
+	generateExtraTemps := true.
 	generatedInputs := Dictionary new.
 	methodNumber := 0.
 	self generateInputs.

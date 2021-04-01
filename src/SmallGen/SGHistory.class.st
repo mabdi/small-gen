@@ -51,13 +51,10 @@ SGHistory >> events [
 { #category : #adding }
 SGHistory >> exitMethod: selector on: aReceiver args: args result: aResult preCallData: preCallData [
 	| res popedSelector |
-	SGObserver logMe: 'SGHistory>>#exitMethod: enter'.
 	popedSelector := self callStack pop.
 	popedSelector = selector
 		ifFalse: [ self error: 'You shouldnt be here. something is wrong.' ].
 	self callStack ifNotEmpty: [ ^ false ].
-	SGObserver logMe: 'SGHistory>>#exitMethod: passed ifNot'.
-	
 	res := SGEvent new
 		selector: selector;
 		stateBefore: (preCallData at: #state);
